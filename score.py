@@ -8,10 +8,12 @@ import tensorflow as tf
 import tensorflow_hub as hub
 
 import score_musiq
+import score_vila
 import utils
 
 SCORERS = (
     ('musiq', score_musiq.get_score),
+    ('vila', score_vila.get_score),
 )
 
 IMAGE_LIMIT = None
