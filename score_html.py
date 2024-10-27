@@ -1,47 +1,36 @@
-import json
-import pathlib
+import jinja2
 
 import utils
 
 
 HTML_FILE = utils.CURRENT_FOLDER / 'scores.html'
+SCORERS = (
+    'vila',
+    'musiq',
+)
+ORDER_BY = SCORERS[0]
 
 
 print('Loading scores...')
 SCORES = utils.load_scores()
 results = list(SCORES.items())
-results.sort(key=lambda result: result[1], reverse=True)
+results.sort(key=lambda result: result[1][ORDER_BY], reverse=True)
+
 
 print('Generating HTML...')
-html = [
-    '<table border="1">',
-    '<thead>',
-    '<tr>',
-    '<th>File</th>',
-    '<th>Score</th>',
-    '<th>Image</th>',
-    '</tr>',
-    '</thead>',
-    '<tbody>',
-]
-html.append('<ul>')
-for file_id, score in results:
-  path = utils.IMAGE_FOLDER / file_id
-  relative_path = path.relative_to(utils.CURRENT_FOLDER)
-  html.extend([
-      '<tr>',
-      f'<td>{file_id}</td>',
-      f'<td>{score}</td>',
-      f'<td><img src="{relative_path}" style="max-height: 100px;"></td>',
-      '</tr>',
-  ])
-html.extend([
-    '</tbody>',
-    '</table>',
-])
+env = jinja2.Environment(
+    loader=jinja2.FileSystemLoader('templates'),
+    autoescape=jinja2.select_autoescape()
+)
+template = env.get_template('output.tpl')
+html = template.render(
+    scorers=SCORERS,
+    results=results,
+    path_prefix=utils.IMAGE_FOLDER.relative_to(utils.CURRENT_FOLDER),
+)
 
 print('Saving HTML...')
 with HTML_FILE.open('w') as f:
-  f.write('\n'.join(html))
+  f.write(html)
 
 print('Done!')
