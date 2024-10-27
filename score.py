@@ -3,21 +3,18 @@ import os
 import tempfile
 import time
 
-import utils
-
-print('Importing tensorflow...')
+print('Importing tensorflow & hub...')
 import tensorflow as tf
-
-print('Importing tensorflow-hub...')
 import tensorflow_hub as hub
 
+import score_musiq
+import utils
+
+SCORERS = (
+    ('musiq', score_musiq.get_score),
+)
+
 IMAGE_LIMIT = None
-
-
-print('Loading model...')
-# https://github.com/google-research/google-research/tree/master/musiq
-model = hub.load('https://www.kaggle.com/models/google/musiq/TensorFlow2/ava/1')
-predict = model.signatures['serving_default']
 
 
 def _save_scores(scores: dict) -> None:
@@ -49,14 +46,22 @@ for index, path in enumerate(utils.IMAGE_FOLDER.rglob('*')):
 
   # Check if the file has been scored already
   file_id = str(path.relative_to(utils.IMAGE_FOLDER))
-  if file_id in SCORES:
-    continue
+  file_scores = SCORES.get(file_id) or {}
+  image_bytes = None
 
-  # Process the image
-  image_bytes = tf.constant(tf.io.read_file(str(path)))
-  prediction = predict(image_bytes)
-  SCORES[file_id] = float(prediction['output_0'].numpy())
-  processed += 1
+  # Process the scores
+  for name, score_func in SCORERS:
+    # Check if this model has been done already
+    if name in file_scores:
+      continue
+    
+    if image_bytes is None:
+      image_bytes = tf.constant(tf.io.read_file(str(path)))
+    file_scores[name] = score_func(image_bytes)
+    processed += 1
+
+  # Save results back to scores
+  SCORES[file_id] = file_scores
 
 _save_scores(SCORES)
 
