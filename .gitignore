@@ -1,0 +1,4 @@
+images/
+__pycache__/
+scores.json
+scores.html

@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "Auto Image"
+version = "0.1.0"
+description = "Automatically choose the top N interesting images from a set of images"
+authors = [
+  "Nicholas Lee <csudcy@gmail.com>"
+]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.9,<3.10"  # Compatible python versions must be declared here
+# Have to use 2.16 as that's the last version which includes a Mac Intel wheel
+tensorflow = "^2.16,<2.17"
+tensorflow-hub = ">=0.16.1"
