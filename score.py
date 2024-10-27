@@ -50,7 +50,6 @@ for index, path in enumerate(utils.IMAGE_FOLDER.rglob('*')):
   # Check if the file has been scored already
   file_id = str(path.relative_to(utils.IMAGE_FOLDER))
   file_scores = SCORES.get(file_id) or {}
-  image_bytes = None
 
   # Process the scores
   for name, score_func in SCORERS:
@@ -58,9 +57,7 @@ for index, path in enumerate(utils.IMAGE_FOLDER.rglob('*')):
     if name in file_scores:
       continue
     
-    if image_bytes is None:
-      image_bytes = tf.constant(tf.io.read_file(str(path)))
-    file_scores[name] = score_func(image_bytes)
+    file_scores[name] = score_func(path)
     processed += 1
 
   # Save results back to scores
