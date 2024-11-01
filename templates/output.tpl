@@ -17,7 +17,11 @@
         {% for file_id, scores in results %}
           <tr>
               <td>{{ file_id }}</td>
-              <td><img src="{{ path_prefix }}/{{ file_id }}" style="max-height: 100px;"></td>
+              <td>
+                <a href="{{ path_prefix }}/{{ file_id }}">
+                  <img src="{{ path_prefix }}/{{ file_id }}" style="max-height: 100px;">
+                </a>
+              </td>
               {% for scorer in scorers %}
                 <td>{{ scores[scorer] }}</td>
               {% endfor %}

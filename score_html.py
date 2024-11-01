@@ -5,6 +5,7 @@ import utils
 
 HTML_FILE = utils.CURRENT_FOLDER / 'scores.html'
 SCORERS = (
+    'manual',
     'vila',
     'musiq',
 )
