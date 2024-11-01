@@ -1,0 +1,18 @@
+{
+  "name": "auto-image",
+  "version": "0.1.0",
+  "description": "Auto Image",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/csudcy/auto-image/"
+  },
+  "scripts": {
+    "poetry:install": "./scripts/poetry_install.sh",
+    "poetry:update": "./scripts/poetry_update.sh",
+    "score" : "./scripts/poetry_run.sh python3 score.py",
+    "score-html" : "./scripts/poetry_run.sh python3 score_html.py"
+  },
+  "author": "Nicholas Lee <csudcy@gmail.com>",
+  "devDependencies": {},
+  "dependencies": {}
+}
