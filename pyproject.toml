@@ -13,3 +13,4 @@ python = "^3.9,<3.10"  # Compatible python versions must be declared here
 tensorflow = "^2.16,<2.17"
 tensorflow-hub = ">=0.16.1"
 jinja2 = ">=3.1.4"
+opencv-python = ">=4.10.0.84"
