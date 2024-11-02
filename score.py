@@ -19,7 +19,9 @@ IMAGE_FOLDER = CURRENT_FOLDER / 'images'
 SCORE_FILE = CURRENT_FOLDER / 'scores.json'
 HTML_FILE = CURRENT_FOLDER / 'scores.html'
 
-# Check if anything can be identified by OpenCV?
+# Check if anything can be identified (people, animals)
+# Check for lots of text
+# Check for skin/NSFW
 SCORERS = (
     ('blur', score_blur),
     ('exif-is-photo', score_exif_is_photo),

@@ -12,17 +12,25 @@ PHOTO_TAGS = (
 def get_score(image_path: pathlib.Path) -> float:
   image = Image.open(image_path)
   exifdata = image.getexif()
-  for tag in PHOTO_TAGS:
-    if tag in exifdata:
-      return 1
-  return 0
+  if exifdata:
+    for tag in PHOTO_TAGS:
+      if tag in exifdata:
+        return 1
+    return -1
+  else:
+    return 0
 
 
 def classify(score: float) -> int:
   if score == 1:
+    # Definitely a photo
+    return 1
+  elif score == 0:
+    # No exif data
     return 0
   else:
-    return -5
+    # Not a photo
+    return -100
 
 
 if __name__ == '__main__':
@@ -31,6 +39,7 @@ if __name__ == '__main__':
       'images/2024-10-20 12.53.07.jpg',
       # Old photo
       'images/2019-02-09 20.09.45.jpg',
+      'images/2020-03-17 07.59.02.jpg',
       # Screenshots
       # 'images/2024-10-20 20.14.29.jpg',
       # 'images/2024-10-20 20.14.22.jpg',
