@@ -28,6 +28,8 @@
           <th>File</th>
           <th>Image</th>
           <th>Total</th>
+          <th>Chosen?</th>
+          <th>Recent?</th>
           {% for label in label_weights.keys() %}
             <th>{{ label }}</th>
           {% endfor %}
@@ -73,6 +75,16 @@
                 </a>
               </td>
               <td>{{ '{:.03f}'.format(result.total) }}</td>
+              {% if result.chosen %}
+                <td style="background-color: lightblue;">Yes</td>
+              {% else %}
+                <td>-</td>
+              {% endif %}
+              {% if result.is_recent %}
+                <td style="background-color: lightblue;">Yes</td>
+              {% else %}
+                <td>-</td>
+              {% endif %}
               {% for label in label_weights.keys() %}
                 {% if label in result.scores %}
                   <td style="background-color: rgb({{ '{:.01f}'.format((1-result.scores[label]) * 255) }}, {{ '{:.01f}'.format((1-result.scores[label]) * 255) }}, 255)">

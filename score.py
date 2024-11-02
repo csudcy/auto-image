@@ -1,8 +1,10 @@
 import collections
 from dataclasses import dataclass
+import datetime
 import json
 import os
 import pathlib
+import re
 import statistics
 import tempfile
 import time
@@ -16,9 +18,10 @@ IMAGE_FOLDER = CURRENT_FOLDER / 'images'
 SCORE_FILE = CURRENT_FOLDER / 'scores-clip.json'
 HTML_FILE = CURRENT_FOLDER / 'scores-clip.html'
 
-# Check if anything can be identified (people, animals)
-# Check for lots of text
-# Check for skin/NSFW
+# Copy chosen files to another directory
+# Remove non-chosen files
+# Check for very similar photos & choose the best one (before choosing top)
+# Choose seasonal photos from previous years?
 
 TOTAL_KEY = '_total'
 ORDER_BY = TOTAL_KEY
@@ -29,11 +32,23 @@ EXTENSIONS = ('jpg', 'png')
 
 LABEL_SET = set(score_clip.LABELS)
 
+RECENT_DELTA = datetime.timedelta(weeks=56)
+TOP_RECENT_COUNT = 200
+TOP_OLD_COUNT = 100
+
+# 2024-10-21 10.52.09-1.jpg
+# skin-2018-07-18 12.59.08-2.jpg
+DATETIME_RE = r'.*(\d{4}-\d{2}-\d{2} \d{2}.\d{2}.\d{2})'
+DATETIME_FORMAT = '%Y-%m-%d %H.%M.%S'
+
+
 @dataclass
 class Result:
   path: str
   scores: dict[str, float]
   total: float = 0
+  is_recent: bool = False
+  is_chosen: bool = False
 
 
 ResultsType = dict[str, Result]
@@ -129,10 +144,41 @@ def process() -> ResultsType:
   return results
 
 
+def _choose_top(results: list[Result], count: int) -> None:
+  results.sort(key=lambda result: result.total, reverse=True)
+  for result in results[:count]:
+    result.chosen = True
+
+
+def _parse_datetime(filename: str) -> datetime.datetime:
+  match = re.match(DATETIME_RE, filename)
+  if match:
+    dt = match.group(1)
+    return datetime.datetime.strptime(dt, DATETIME_FORMAT)
+  else:
+    print(f'  Unable to parse date: {filename}')
+    return datetime.datetime.min
+
+
 def classify(results: ResultsType) -> None:
+  now = datetime.datetime.now()
+  recent_minimum = now - RECENT_DELTA
+  recent_results = []
+  old_results = []
+
   for result in results.values():
     classification = score_clip.classify(result.scores)
     result.total = sum(classification)
+
+    taken = _parse_datetime(result.path)
+    result.is_recent = taken > recent_minimum
+    if result.is_recent:
+      recent_results.append(result)
+    else:
+      old_results.append(result)
+
+  _choose_top(recent_results, TOP_RECENT_COUNT)
+  _choose_top(old_results, TOP_OLD_COUNT)
 
 
 def output_html(results: ResultsType) -> None:
