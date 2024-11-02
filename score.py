@@ -1,6 +1,7 @@
 import json
 import os
 import pathlib
+import statistics
 import tempfile
 import time
 
@@ -22,7 +23,8 @@ SCORERS = (
     ('musiq', score_musiq.get_score),
     ('vila', score_vila.get_score),
 )
-ORDER_BY = SCORERS[0][0]
+SCORER_NAMES = [scorer for scorer, _ in SCORERS]
+ORDER_BY = SCORER_NAMES[0]
 
 IMAGE_LIMIT = None
 
@@ -106,6 +108,19 @@ def output_html(scores: dict) -> None:
   results = list(scores.items())
   results.sort(key=lambda result: result[1][ORDER_BY], reverse=True)
 
+  # Calculate stats
+  stats = {}
+  for scorer in SCORER_NAMES:
+    single_scores = [
+        score.get(scorer)
+        for score in scores.values()
+    ]
+    stats[scorer] = {
+        'min': min(single_scores),
+        'mean': statistics.mean(single_scores),
+        'median': statistics.median(single_scores),
+        'max': max(single_scores),
+    }
 
   print('Generating HTML...')
   env = jinja2.Environment(
@@ -114,7 +129,8 @@ def output_html(scores: dict) -> None:
   )
   template = env.get_template('output.tpl')
   html = template.render(
-      scorers=SCORERS,
+      scorers=SCORER_NAMES,
+      stats=stats,
       results=results,
       path_prefix=IMAGE_FOLDER.relative_to(CURRENT_FOLDER),
   )

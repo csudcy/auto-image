@@ -3,6 +3,31 @@
     <title>Auto Image Testing</title>
   </head>
   <body>
+    <h1>Stats</h1>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>Scorer</th>
+          <th>Min</th>
+          <th>Mean</th>
+          <th>Median</th>
+          <th>Max</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for scorer in scorers %}
+          <tr>
+              <th>{{ scorer }}</th>
+              <td>{{ '{:.03f}'.format(stats[scorer].min) }}</td>
+              <td>{{ '{:.03f}'.format(stats[scorer].mean) }}</td>
+              <td>{{ '{:.03f}'.format(stats[scorer].median) }}</td>
+              <td>{{ '{:.03f}'.format(stats[scorer].max) }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h1>Scores</h1>
     <table border="1">
       <thead>
         <tr>
@@ -23,11 +48,11 @@
                 </a>
               </td>
               {% for scorer in scorers %}
-                <td>{{ scores[scorer] }}</td>
+                <td>{{ '{:.03f}'.format(scores[scorer]) }}</td>
               {% endfor %}
           </tr>
         {% endfor %}
-    </tbody>
+      </tbody>
     </table>
   </body>
 </html>
