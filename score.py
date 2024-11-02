@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 import tempfile
 import time
 
@@ -8,24 +9,35 @@ import jinja2
 import score_manual
 import score_musiq
 import score_vila
-import utils
+
+CURRENT_FOLDER = pathlib.Path(__file__).parent
+IMAGE_FOLDER = CURRENT_FOLDER / 'images'
+SCORE_FILE = CURRENT_FOLDER / 'scores.json'
+HTML_FILE = CURRENT_FOLDER / 'scores.html'
+
 
 SCORERS = (
     ('manual', score_manual.get_score),
     ('musiq', score_musiq.get_score),
     ('vila', score_vila.get_score),
 )
+ORDER_BY = SCORERS[0][0]
 
 IMAGE_LIMIT = None
 
-HTML_FILE = utils.CURRENT_FOLDER / 'scores.html'
-ORDER_BY = SCORERS[0][0]
+
+def _load_scores() -> dict:
+  if SCORE_FILE.exists():
+    with SCORE_FILE.open('r') as f:
+      return json.load(f)
+  else:
+    return {}
 
 
 def _save_scores(scores: dict) -> None:
   with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
       json.dump(scores, temp_file, indent=2)
-  os.replace(temp_file.name, utils.SCORE_FILE)
+  os.replace(temp_file.name, SCORE_FILE)
 
 
 def process() -> dict:
@@ -53,9 +65,9 @@ def process() -> dict:
     last_stats.time = new_time
 
   print('Processing...')
-  scores = utils.load_scores()
+  scores = _load_scores()
   next_time = overall.time
-  for index, path in enumerate(utils.IMAGE_FOLDER.rglob('*')):
+  for index, path in enumerate(IMAGE_FOLDER.rglob('*')):
     if IMAGE_LIMIT and index >= IMAGE_LIMIT:
       print('Hit limit; stopping...')
       break
@@ -66,7 +78,7 @@ def process() -> dict:
       next_time = time.perf_counter() + 5
 
     # Check if the file has been scored already
-    file_id = str(path.relative_to(utils.IMAGE_FOLDER))
+    file_id = str(path.relative_to(IMAGE_FOLDER))
     file_scores = scores.get(file_id) or {}
 
     # Process the scores
@@ -103,7 +115,7 @@ def output_html(scores: dict) -> None:
   html = template.render(
       scorers=SCORERS,
       results=results,
-      path_prefix=utils.IMAGE_FOLDER.relative_to(utils.CURRENT_FOLDER),
+      path_prefix=IMAGE_FOLDER.relative_to(CURRENT_FOLDER),
   )
 
   print('Saving HTML...')
