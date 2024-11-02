@@ -1,19 +1,21 @@
+# Based on https://pyimagesearch.com/2020/06/15/opencv-fast-fourier-transform-fft-for-blur-detection-in-images-and-video-streams/
+
 import pathlib
 
 import cv2
 import numpy as np
 
-
-def _score_blur_laplacian(image) -> float:
-  gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-  return cv2.Laplacian(gray_image, cv2.CV_64F).var()
+ZERO_SIZE = 60
 
 
-def _score_blur_fft(image, size=60) -> float:
-  # See https://pyimagesearch.com/2020/06/15/opencv-fast-fourier-transform-fft-for-blur-detection-in-images-and-video-streams/
+def get_score(image_path: pathlib.Path) -> float:
+  image = cv2.imread(image_path)
 
   # Downsize the image for speed
   image = cv2.resize(image, (500, 500), interpolation=cv2.INTER_AREA)
+
+  # Make it grayscale
+  image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
   # grab the dimensions of the image and use the dimensions to
   # derive the center (x, y)-coordinates
@@ -31,7 +33,7 @@ def _score_blur_fft(image, size=60) -> float:
   # frequencies), apply the inverse shift such that the DC
   # component once again becomes the top-left, and then apply
   # the inverse FFT
-  fftShift[cY - size:cY + size, cX - size:cX + size] = 0
+  fftShift[cY - ZERO_SIZE:cY + ZERO_SIZE, cX - ZERO_SIZE:cX + ZERO_SIZE] = 0
   fftShift = np.fft.ifftshift(fftShift)
   recon = np.fft.ifft2(fftShift)
 
@@ -40,19 +42,3 @@ def _score_blur_fft(image, size=60) -> float:
   magnitude = 20 * np.log(np.abs(recon))
   mean = np.mean(magnitude)
   return mean
-
-
-def get_score(image_path: pathlib.Path) -> float:
-  # image_bytes = tf.constant(tf.io.read_file(str(image_path)))
-  image = cv2.imread(image_path)
-  gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-  # Check for blur
-  # return _score_blur_laplacian(gray_image)
-  return _score_blur_fft(gray_image)
-
-  # Check if screenshot
-
-  # Check if anything can be identified by OpenCV?
-
-  return 0
