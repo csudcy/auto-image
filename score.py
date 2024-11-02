@@ -1,3 +1,4 @@
+import collections
 import json
 import os
 import pathlib
@@ -26,8 +27,9 @@ SCORERS = (
     ('score-orb-response', score_orb_response),
     ('vila', score_vila),
 )
+TOTAL_KEY = '_total'
 SCORER_NAMES = [scorer for scorer, _ in SCORERS]
-ORDER_BY = '_total'
+ORDER_BY = TOTAL_KEY
 
 IMAGE_LIMIT = None
 
@@ -113,7 +115,7 @@ def classify(scores: dict) -> None:
         score_class.classify(scores[scorer])
         for scorer, score_class in SCORERS
     ]
-    scores['_total'] = sum(scores['_classifications'])
+    scores[TOTAL_KEY] = sum(scores['_classifications'])
 
 
 def output_html(scores: dict) -> None:
@@ -121,7 +123,7 @@ def output_html(scores: dict) -> None:
   results = list(scores.items())
   results.sort(key=lambda result: result[1][ORDER_BY], reverse=True)
 
-  # Calculate stats
+  # Calculate scorer stats
   stats = {}
   for scorer in SCORER_NAMES:
     single_scores = [
@@ -134,6 +136,12 @@ def output_html(scores: dict) -> None:
         'median': statistics.median(single_scores),
         'max': max(single_scores),
     }
+  
+  # Calculate total stats
+  total_counter = collections.Counter([
+      score.get(TOTAL_KEY)
+      for score in scores.values()
+  ])
 
   print('Generating HTML...')
   env = jinja2.Environment(
@@ -145,6 +153,7 @@ def output_html(scores: dict) -> None:
       scorers=SCORER_NAMES,
       stats=stats,
       results=results,
+      total_counter=total_counter,
       path_prefix=IMAGE_FOLDER.relative_to(CURRENT_FOLDER),
   )
 

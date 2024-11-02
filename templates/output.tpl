@@ -3,7 +3,7 @@
     <title>Auto Image Testing</title>
   </head>
   <body>
-    <h1>Stats</h1>
+    <h1>Scorer Stats</h1>
     <table border="1">
       <thead>
         <tr>
@@ -22,6 +22,25 @@
               <td>{{ '{:.03f}'.format(stats[scorer].mean) }}</td>
               <td>{{ '{:.03f}'.format(stats[scorer].median) }}</td>
               <td>{{ '{:.03f}'.format(stats[scorer].max) }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h1>Counts</h1>
+    {{ total_counter }}
+    <table border="1">
+      <thead>
+        <tr>
+          <th>Score</th>
+          <th>Count</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for score, count in total_counter.items() | sort(reverse=True) %}
+          <tr>
+              <td>{{ score }}</td>
+              <td>{{ count }}</td>
           </tr>
         {% endfor %}
       </tbody>
