@@ -23,6 +23,17 @@ def get_score(image_path: pathlib.Path) -> float:
   return statistics.median((kp.response * 1000 for kp in key_points))
 
 
+def classify(score: float) -> int:
+  if score <= 0.2:
+    return -2
+  elif score <= 0.3:
+    return -1
+  elif score <= 0.6:
+    return 0
+  else:
+    return 1
+
+
 if __name__ == '__main__':
   image_paths = (
       'images/2024-10-14 17.55.41.jpg',

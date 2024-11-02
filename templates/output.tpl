@@ -33,6 +33,8 @@
         <tr>
           <th>File</th>
           <th>Image</th>
+          <th>Total</th>
+          <th>Classifications</th>
           {% for scorer in scorers %}
             <th>{{ scorer }}</th>
           {% endfor %}
@@ -43,10 +45,12 @@
           <tr>
               <td>{{ file_id }}</td>
               <td>
-                <a href="{{ path_prefix }}/{{ file_id }}">
+                <a href="{{ path_prefix }}/{{ file_id }}" target="_blank">
                   <img src="{{ path_prefix }}/{{ file_id }}" style="max-height: 100px;">
                 </a>
               </td>
+              <td>{{ scores['_total'] }}</td>
+              <td>{{ scores['_classifications'] }}</td>
               {% for scorer in scorers %}
                 <td>{{ '{:.03f}'.format(scores[scorer]) }}</td>
               {% endfor %}

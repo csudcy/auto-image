@@ -18,3 +18,10 @@ def get_score(image_path: pathlib.Path) -> float:
   predict = MODEL.signatures['serving_default']
   prediction = predict(image_bytes)
   return float(prediction['predictions'].numpy()[0][0]) * 10
+
+
+def classify(score: float) -> int:
+  if score <= 3:
+    return -1
+  else:
+    return 0

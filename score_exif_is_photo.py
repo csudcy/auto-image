@@ -15,6 +15,13 @@ def get_score(image_path: pathlib.Path) -> float:
     return 0
 
 
+def classify(score: float) -> int:
+  if score == 1:
+    return 0
+  else:
+    return -5
+
+
 if __name__ == '__main__':
   image_paths = (
       # Photo

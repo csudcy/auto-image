@@ -42,3 +42,12 @@ def get_score(image_path: pathlib.Path) -> float:
   magnitude = 20 * np.log(np.abs(recon))
   mean = np.mean(magnitude)
   return mean
+
+
+def classify(score: float) -> int:
+  if score <= 2:
+    return -2
+  elif score <= 12:
+    return -1
+  else:
+    return 0

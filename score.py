@@ -20,14 +20,14 @@ HTML_FILE = CURRENT_FOLDER / 'scores.html'
 
 # Check if anything can be identified by OpenCV?
 SCORERS = (
-    ('score-orb-response', score_orb_response.get_score),
-    ('exif-is-photo', score_exif_is_photo.get_score),
-    ('blur', score_blur.get_score),
-    ('musiq', score_musiq.get_score),
-    ('vila', score_vila.get_score),
+    ('blur', score_blur),
+    ('exif-is-photo', score_exif_is_photo),
+    ('musiq', score_musiq),
+    ('score-orb-response', score_orb_response),
+    ('vila', score_vila),
 )
 SCORER_NAMES = [scorer for scorer, _ in SCORERS]
-ORDER_BY = SCORER_NAMES[0]
+ORDER_BY = '_total'
 
 IMAGE_LIMIT = None
 
@@ -88,12 +88,12 @@ def process() -> dict:
     file_scores = scores.get(file_id) or {}
 
     # Process the scores
-    for name, score_func in SCORERS:
+    for name, score_class in SCORERS:
       # Check if this model has been done already
       if name in file_scores:
         continue
       
-      file_scores[name] = score_func(path)
+      file_scores[name] = score_class.get_score(path)
       overall.processed += 1
 
     # Save results back to scores
@@ -107,7 +107,17 @@ def process() -> dict:
   return scores
 
 
+def classify(scores: dict) -> None:
+  for scores in scores.values():
+    scores['_classifications'] = [
+        score_class.classify(scores[scorer])
+        for scorer, score_class in SCORERS
+    ]
+    scores['_total'] = sum(scores['_classifications'])
+
+
 def output_html(scores: dict) -> None:
+  classify(scores)
   results = list(scores.items())
   results.sort(key=lambda result: result[1][ORDER_BY], reverse=True)
 
