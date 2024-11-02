@@ -3,6 +3,8 @@ import os
 import tempfile
 import time
 
+import jinja2
+
 import score_manual
 import score_musiq
 import score_vila
@@ -16,6 +18,9 @@ SCORERS = (
 
 IMAGE_LIMIT = None
 
+HTML_FILE = utils.CURRENT_FOLDER / 'scores.html'
+ORDER_BY = SCORERS[0][0]
+
 
 def _save_scores(scores: dict) -> None:
   with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
@@ -23,7 +28,7 @@ def _save_scores(scores: dict) -> None:
   os.replace(temp_file.name, utils.SCORE_FILE)
 
 
-def process():
+def process() -> dict:
   class StatTracker():
     processed: int = 0
     time: float = time.perf_counter()
@@ -47,7 +52,7 @@ def process():
     last_stats.processed = overall.processed
     last_stats.time = new_time
 
-  print('Predicting...')
+  print('Processing...')
   scores = utils.load_scores()
   next_time = overall.time
   for index, path in enumerate(utils.IMAGE_FOLDER.rglob('*')):
@@ -79,8 +84,35 @@ def process():
   _show_stats()
   _save_scores(scores)
 
-  print('Done!')
+  print('Processing done!')
+
+  return scores
+
+
+def output_html(scores: dict) -> None:
+  results = list(scores.items())
+  results.sort(key=lambda result: result[1][ORDER_BY], reverse=True)
+
+
+  print('Generating HTML...')
+  env = jinja2.Environment(
+      loader=jinja2.FileSystemLoader('templates'),
+      autoescape=jinja2.select_autoescape()
+  )
+  template = env.get_template('output.tpl')
+  html = template.render(
+      scorers=SCORERS,
+      results=results,
+      path_prefix=utils.IMAGE_FOLDER.relative_to(utils.CURRENT_FOLDER),
+  )
+
+  print('Saving HTML...')
+  with HTML_FILE.open('w') as f:
+    f.write(html)
+
+  print('HTML done!')
 
 
 if __name__ == '__main__':
-  process()
+  scores = process()
+  output_html(scores)
