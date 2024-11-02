@@ -10,6 +10,7 @@ import jinja2
 import score_blur
 import score_exif_is_photo
 import score_musiq
+import score_orb_response
 import score_vila
 
 CURRENT_FOLDER = pathlib.Path(__file__).parent
@@ -19,6 +20,7 @@ HTML_FILE = CURRENT_FOLDER / 'scores.html'
 
 # Check if anything can be identified by OpenCV?
 SCORERS = (
+    ('score-orb-response', score_orb_response.get_score),
     ('exif-is-photo', score_exif_is_photo.get_score),
     ('blur', score_blur.get_score),
     ('musiq', score_musiq.get_score),
