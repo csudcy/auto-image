@@ -8,34 +8,25 @@ import time
 
 import jinja2
 
-import score_blur
-import score_exif_is_photo
-import score_musiq
-import score_orb_response
-import score_vila
+import score_clip
 
 CURRENT_FOLDER = pathlib.Path(__file__).parent
 IMAGE_FOLDER = CURRENT_FOLDER / 'images'
-SCORE_FILE = CURRENT_FOLDER / 'scores.json'
-HTML_FILE = CURRENT_FOLDER / 'scores.html'
+SCORE_FILE = CURRENT_FOLDER / 'scores-clip.json'
+HTML_FILE = CURRENT_FOLDER / 'scores-clip.html'
 
 # Check if anything can be identified (people, animals)
 # Check for lots of text
 # Check for skin/NSFW
-SCORERS = (
-    ('blur', score_blur),
-    ('exif-is-photo', score_exif_is_photo),
-    ('musiq', score_musiq),
-    ('score-orb-response', score_orb_response),
-    ('vila', score_vila),
-)
+
 TOTAL_KEY = '_total'
-SCORER_NAMES = [scorer for scorer, _ in SCORERS]
 ORDER_BY = TOTAL_KEY
 
 IMAGE_LIMIT = None
 
 EXTENSIONS = ('jpg', 'png')
+
+LABEL_SET = set(score_clip.LABELS)
 
 
 def _load_scores() -> dict:
@@ -96,22 +87,14 @@ def process() -> dict:
 
     # Check if the file has been scored already
     file_id = str(path.relative_to(IMAGE_FOLDER))
-    file_scores = scores.get(file_id) or {}
 
     # Process the scores
-    for name, score_class in SCORERS:
-      # Check if this model has been done already
-      if name in file_scores:
-        continue
-
+    if LABEL_SET.difference(scores.get(file_id) or {}):
       try:
-        file_scores[name] = score_class.get_score(path)
+        scores[file_id] = score_clip.get_score(path)
       except Exception as ex:
-        print(f'  Error scoring {path.name} with {name} - {ex}')
-    overall.processed += 1
-
-    # Save results back to scores
-    scores[file_id] = file_scores
+        print(f'  Error scoring {path.name} - {ex}')
+      overall.processed += 1
 
   _show_stats()
   _save_scores(scores)
@@ -123,11 +106,7 @@ def process() -> dict:
 
 def classify(scores: dict) -> None:
   for score in scores.values():
-    score['_classifications'] = [
-        score_class.classify(score.get(scorer))
-        for scorer, score_class in SCORERS
-        if scorer in score
-    ]
+    score['_classifications'] = score_clip.classify(score)
     score[TOTAL_KEY] = sum(score['_classifications'])
 
 
@@ -138,7 +117,7 @@ def output_html(scores: dict) -> None:
 
   # Calculate scorer stats
   stats = {}
-  for scorer in SCORER_NAMES:
+  for scorer in score_clip.LABELS:
     single_scores = [
         score.get(scorer)
         for score in scores.values()
@@ -153,7 +132,7 @@ def output_html(scores: dict) -> None:
   
   # Calculate total stats
   total_counter = collections.Counter([
-      score.get(TOTAL_KEY)
+      round(score.get(TOTAL_KEY))
       for score in scores.values()
   ])
 
@@ -164,7 +143,7 @@ def output_html(scores: dict) -> None:
   )
   template = env.get_template('output.tpl')
   html = template.render(
-      scorers=SCORER_NAMES,
+      scorers=score_clip.LABELS,
       stats=stats,
       results=results,
       total_counter=total_counter,
