@@ -144,6 +144,7 @@ def output_html(scores: dict) -> None:
   template = env.get_template('output.tpl')
   html = template.render(
       label_weights=score_clip.LABEL_WEIGHTS,
+      total_weight=sum(score_clip.LABEL_WEIGHTS.values()),
       stats=stats,
       results=results,
       total_counter=total_counter,

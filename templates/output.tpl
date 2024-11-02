@@ -33,7 +33,7 @@
           {% endfor %}
         </tr>
         <tr>
-          <th colspan="3">Weight</th>
+          <th colspan="3">Weight (Total: {{ total_weight }})</th>
           {% for weight in label_weights.values() %}
             <td>{{ weight }}</td>
           {% endfor %}

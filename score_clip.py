@@ -1,29 +1,31 @@
 # Based on https://pypi.org/project/open-clip-torch/
 
-import math
 import pathlib
 
 from PIL import Image
 import open_clip
 
 LABEL_WEIGHTS = {
-    'an amazing photograph': 5,
-    'an interesting photograph': 5,
+    'an interesting photo': 5,
 
-    'a dog': 1,
-    'a cat': 1,
-    'a pet': 1,
+    'a photo of animals': 3,
 
-    'a person bare skin': -2,
+    'a photo of a dog': 2,
+    'a photo of a cat': 2,
+    'a fun photo': 2,
+    'a photo of people': 2,
 
-    'lots of text': -3,
+    'a photo of a concert': 1,
+    'a photo of a festival': 1,
+    'a photo of the theatre': 1,
 
-    'a naked person': -4,
+    'lots of text': -2,
 
-    'a terrible photograph': -5,
-    'a screenshot': -5,
-    'a photo of a screen': -5,
-    'a photo of a document': -5,
+    'a persons bare skin': -4,
+    'a screenshot': -4,
+    'a photo of a document': -4,
+
+    'a boring photo': -5,
 }
 LABELS = list(LABEL_WEIGHTS.keys())
 
