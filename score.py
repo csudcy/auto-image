@@ -3,19 +3,15 @@ import os
 import tempfile
 import time
 
-# print('Importing tensorflow & hub...')
-# import tensorflow as tf
-# import tensorflow_hub as hub
-
 import score_manual
-# import score_musiq
-# import score_vila
+import score_musiq
+import score_vila
 import utils
 
 SCORERS = (
     ('manual', score_manual.get_score),
-    # ('musiq', score_musiq.get_score),
-    # ('vila', score_vila.get_score),
+    ('musiq', score_musiq.get_score),
+    ('vila', score_vila.get_score),
 )
 
 IMAGE_LIMIT = None

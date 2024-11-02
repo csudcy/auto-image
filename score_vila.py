@@ -2,14 +2,15 @@
 
 import pathlib
 
-import tensorflow as tf
-import tensorflow_hub as hub
-
 MODEL = None
 
 
 def get_score(image_path: pathlib.Path) -> float:
   global MODEL
+  # Only import tf if it's required
+  import tensorflow as tf
+  import tensorflow_hub as hub
+
   if MODEL is None:
     MODEL = hub.load('https://tfhub.dev/google/vila/image/1')
 
