@@ -71,7 +71,11 @@
               <td>{{ scores['_total'] }}</td>
               <td>{{ scores['_classifications'] }}</td>
               {% for scorer in scorers %}
-                <td>{{ '{:.03f}'.format(scores[scorer]) }}</td>
+                {% if scorer in scores %}
+                  <td>{{ '{:.03f}'.format(scores[scorer]) }}</td>
+                {% else %}
+                  <td>-</td>
+                {% endif %}
               {% endfor %}
           </tr>
         {% endfor %}

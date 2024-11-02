@@ -33,6 +33,8 @@ ORDER_BY = TOTAL_KEY
 
 IMAGE_LIMIT = None
 
+EXTENSIONS = ('jpg', 'png')
+
 
 def _load_scores() -> dict:
   if SCORE_FILE.exists():
@@ -80,6 +82,11 @@ def process() -> dict:
       print('Hit limit; stopping...')
       break
 
+    extension = path.suffix.lower().lstrip('.')
+    if extension not in EXTENSIONS:
+      print(f'  Skipping non-image: {path.name}')
+      continue
+
     if time.perf_counter() >= next_time:
       _show_stats()
       _save_scores(scores)
@@ -94,9 +101,12 @@ def process() -> dict:
       # Check if this model has been done already
       if name in file_scores:
         continue
-      
-      file_scores[name] = score_class.get_score(path)
-      overall.processed += 1
+
+      try:
+        file_scores[name] = score_class.get_score(path)
+      except Exception as ex:
+        print(f'  Error scoring {path.name} with {name} - {ex}')
+    overall.processed += 1
 
     # Save results back to scores
     scores[file_id] = file_scores
@@ -110,18 +120,19 @@ def process() -> dict:
 
 
 def classify(scores: dict) -> None:
-  for scores in scores.values():
-    scores['_classifications'] = [
-        score_class.classify(scores[scorer])
+  for score in scores.values():
+    score['_classifications'] = [
+        score_class.classify(score.get(scorer))
         for scorer, score_class in SCORERS
+        if scorer in score
     ]
-    scores[TOTAL_KEY] = sum(scores['_classifications'])
+    score[TOTAL_KEY] = sum(score['_classifications'])
 
 
 def output_html(scores: dict) -> None:
   classify(scores)
   results = list(scores.items())
-  results.sort(key=lambda result: result[1][ORDER_BY], reverse=True)
+  results.sort(key=lambda result: result[1].get(ORDER_BY, -9999), reverse=True)
 
   # Calculate scorer stats
   stats = {}
@@ -129,6 +140,7 @@ def output_html(scores: dict) -> None:
     single_scores = [
         score.get(scorer)
         for score in scores.values()
+        if scorer in score
     ]
     stats[scorer] = {
         'min': min(single_scores),

@@ -20,7 +20,10 @@ def get_score(image_path: pathlib.Path) -> float:
   # Detect key points and compute descriptors
   key_points, _ = ORB.detectAndCompute(image, None)
 
-  return statistics.median((kp.response * 1000 for kp in key_points))
+  if key_points:
+    return statistics.median((kp.response * 1000 for kp in key_points))
+  else:
+    return 0
 
 
 def classify(score: float) -> int:
