@@ -24,19 +24,32 @@ def _save_scores(scores: dict) -> None:
 
 
 def process():
-  processed = 0
-  start_time = time.perf_counter()
+  class StatTracker():
+    processed: int = 0
+    time: float = time.perf_counter()
+
+  overall = StatTracker()
+  last_stats = StatTracker()
+
   def _show_stats():
-    diff_time = time.perf_counter() - start_time
-    if processed:
-      processed_per_minute = processed / (diff_time / 60)
+    new_time = time.perf_counter()
+
+    diff_processed = overall.processed - last_stats.processed
+    diff_time = new_time - last_stats.time
+    if diff_processed and diff_time:
+      processed_per_minute = diff_processed / (diff_time / 60)
     else:
       processed_per_minute = 0
-    print(f'Done {index} files (scored {processed} in {diff_time:.02f}s, {processed_per_minute:.02f} per minute)')
+
+    wall_time = new_time - overall.time
+    print(f'Done {index} files (scored {overall.processed} in {wall_time:.01f}s, {processed_per_minute:.01f} per minute)')
+
+    last_stats.processed = overall.processed
+    last_stats.time = new_time
 
   print('Predicting...')
   scores = utils.load_scores()
-  next_time = start_time
+  next_time = overall.time
   for index, path in enumerate(utils.IMAGE_FOLDER.rglob('*')):
     if IMAGE_LIMIT and index >= IMAGE_LIMIT:
       print('Hit limit; stopping...')
@@ -44,8 +57,8 @@ def process():
 
     if time.perf_counter() >= next_time:
       _show_stats()
-      next_time = time.perf_counter() + 5
       _save_scores(scores)
+      next_time = time.perf_counter() + 5
 
     # Check if the file has been scored already
     file_id = str(path.relative_to(utils.IMAGE_FOLDER))
@@ -58,7 +71,7 @@ def process():
         continue
       
       file_scores[name] = score_func(path)
-      processed += 1
+      overall.processed += 1
 
     # Save results back to scores
     scores[file_id] = file_scores
