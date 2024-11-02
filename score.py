@@ -1,4 +1,5 @@
 import collections
+from dataclasses import dataclass
 import json
 import os
 import pathlib
@@ -28,22 +29,39 @@ EXTENSIONS = ('jpg', 'png')
 
 LABEL_SET = set(score_clip.LABELS)
 
+@dataclass
+class Result:
+  path: str
+  scores: dict[str, float]
+  total: float = 0
 
-def _load_scores() -> dict:
+
+ResultsType = dict[str, Result]
+
+
+def _load_results() -> ResultsType:
   if SCORE_FILE.exists():
     with SCORE_FILE.open('r') as f:
-      return json.load(f)
+      scores = json.load(f)
+    return {
+        path: Result(path=path, scores=scores)
+        for path, scores in scores.items()
+    }
   else:
     return {}
 
 
-def _save_scores(scores: dict) -> None:
+def _save_results(results: ResultsType) -> None:
+  scores = {
+      path: result.scores
+      for path, result in results.items()
+  }
   with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
       json.dump(scores, temp_file, indent=2)
   os.replace(temp_file.name, SCORE_FILE)
 
 
-def process() -> dict:
+def process() -> ResultsType:
   class StatTracker():
     processed: int = 0
     time: float = time.perf_counter()
@@ -68,7 +86,7 @@ def process() -> dict:
     last_stats.time = new_time
 
   print('Processing...')
-  scores = _load_scores()
+  results = _load_results()
   next_time = overall.time
   for index, path in enumerate(IMAGE_FOLDER.rglob('*')):
     if IMAGE_LIMIT and index >= IMAGE_LIMIT:
@@ -82,58 +100,64 @@ def process() -> dict:
 
     if time.perf_counter() >= next_time:
       _show_stats()
-      _save_scores(scores)
+      _save_results(results)
       next_time = time.perf_counter() + 5
 
     # Check if the file has been scored already
     file_id = str(path.relative_to(IMAGE_FOLDER))
 
     # Process the scores
-    if LABEL_SET.difference(scores.get(file_id) or {}):
+    if file_id in results:
+      process_now = bool(LABEL_SET.difference(results[file_id].scores))
+    else:
+      process_now = True
+    if process_now:
       try:
-        scores[file_id] = score_clip.get_score(path)
+        results[file_id] = Result(
+            path=path,
+            scores=score_clip.get_score(path),
+        )
       except Exception as ex:
         print(f'  Error scoring {path.name} - {ex}')
       overall.processed += 1
 
   _show_stats()
-  _save_scores(scores)
+  _save_results(results)
 
   print('Processing done!')
 
-  return scores
+  return results
 
 
-def classify(scores: dict) -> None:
-  for score in scores.values():
-    score['_classifications'] = score_clip.classify(score)
-    score[TOTAL_KEY] = sum(score['_classifications'])
+def classify(results: ResultsType) -> None:
+  for result in results.values():
+    classification = score_clip.classify(result.scores)
+    result.total = sum(classification)
 
 
-def output_html(scores: dict) -> None:
-  classify(scores)
-  results = list(scores.items())
-  results.sort(key=lambda result: result[1].get(ORDER_BY, -9999), reverse=True)
+def output_html(results: ResultsType) -> None:
+  results_list = list(results.items())
+  results_list.sort(key=lambda path_result: path_result[1].total, reverse=True)
 
-  # Calculate scorer stats
+  # Calculate label stats
   stats = {}
-  for scorer in score_clip.LABELS:
-    single_scores = [
-        score.get(scorer)
-        for score in scores.values()
-        if scorer in score
+  for label in score_clip.LABELS:
+    label_scores = [
+        result.scores[label]
+        for result in results.values()
+        if label in result.scores
     ]
-    stats[scorer] = {
-        'min': min(single_scores),
-        'mean': statistics.mean(single_scores),
-        'median': statistics.median(single_scores),
-        'max': max(single_scores),
+    stats[label] = {
+        'min': min(label_scores),
+        'mean': statistics.mean(label_scores),
+        'median': statistics.median(label_scores),
+        'max': max(label_scores),
     }
   
   # Calculate total stats
   total_counter = collections.Counter([
-      round(score.get(TOTAL_KEY))
-      for score in scores.values()
+      round(result.total)
+      for result in results.values()
   ])
 
   print('Generating HTML...')
@@ -146,7 +170,7 @@ def output_html(scores: dict) -> None:
       label_weights=score_clip.LABEL_WEIGHTS,
       total_weight=sum(score_clip.LABEL_WEIGHTS.values()),
       stats=stats,
-      results=results,
+      results=results_list,
       total_counter=total_counter,
       path_prefix=IMAGE_FOLDER.relative_to(CURRENT_FOLDER),
   )
@@ -159,5 +183,6 @@ def output_html(scores: dict) -> None:
 
 
 if __name__ == '__main__':
-  scores = process()
-  output_html(scores)
+  results = process()
+  classify(results)
+  output_html(results)

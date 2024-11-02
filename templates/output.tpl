@@ -64,7 +64,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for file_id, scores in results %}
+        {% for file_id, result in results %}
           <tr>
               <td>{{ file_id }}</td>
               <td>
@@ -72,11 +72,11 @@
                   <img src="{{ path_prefix }}/{{ file_id }}" style="max-height: 100px;">
                 </a>
               </td>
-              <td>{{ '{:.03f}'.format(scores['_total']) }}</td>
+              <td>{{ '{:.03f}'.format(result.total) }}</td>
               {% for label in label_weights.keys() %}
-                {% if label in scores %}
-                  <td style="background-color: rgb({{ '{:.01f}'.format((1-scores[label]) * 255) }}, {{ '{:.01f}'.format((1-scores[label]) * 255) }}, 255)">
-                    {{ '{:.03f}'.format(scores[label]) }}
+                {% if label in result.scores %}
+                  <td style="background-color: rgb({{ '{:.01f}'.format((1-result.scores[label]) * 255) }}, {{ '{:.01f}'.format((1-result.scores[label]) * 255) }}, 255)">
+                    {{ '{:.03f}'.format(result.scores[label]) }}
                   </td>
                 {% else %}
                   <td>-</td>
