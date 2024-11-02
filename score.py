@@ -8,6 +8,7 @@ import time
 import jinja2
 
 import score_blur
+import score_exif_is_photo
 import score_musiq
 import score_vila
 
@@ -16,9 +17,9 @@ IMAGE_FOLDER = CURRENT_FOLDER / 'images'
 SCORE_FILE = CURRENT_FOLDER / 'scores.json'
 HTML_FILE = CURRENT_FOLDER / 'scores.html'
 
-# Check if screenshot
 # Check if anything can be identified by OpenCV?
 SCORERS = (
+    ('exif-is-photo', score_exif_is_photo.get_score),
     ('blur', score_blur.get_score),
     ('musiq', score_musiq.get_score),
     ('vila', score_vila.get_score),
