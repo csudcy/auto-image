@@ -3,32 +3,7 @@
     <title>Auto Image Testing</title>
   </head>
   <body>
-    <h1>Scorer Stats</h1>
-    <table border="1">
-      <thead>
-        <tr>
-          <th>Scorer</th>
-          <th>Min</th>
-          <th>Mean</th>
-          <th>Median</th>
-          <th>Max</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for scorer in scorers %}
-          <tr>
-              <th>{{ scorer }}</th>
-              <td>{{ '{:.03f}'.format(stats[scorer].min) }}</td>
-              <td>{{ '{:.03f}'.format(stats[scorer].mean) }}</td>
-              <td>{{ '{:.03f}'.format(stats[scorer].median) }}</td>
-              <td>{{ '{:.03f}'.format(stats[scorer].max) }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
     <h1>Counts</h1>
-    {{ total_counter }}
     <table border="1">
       <thead>
         <tr>
@@ -53,9 +28,38 @@
           <th>File</th>
           <th>Image</th>
           <th>Total</th>
-          <th>Classifications</th>
-          {% for scorer in scorers %}
-            <th>{{ scorer }}</th>
+          {% for label in label_weights.keys() %}
+            <th>{{ label }}</th>
+          {% endfor %}
+        </tr>
+        <tr>
+          <th colspan="3">Weight</th>
+          {% for weight in label_weights.values() %}
+            <td>{{ weight }}</td>
+          {% endfor %}
+        </tr>
+        <tr>
+          <th colspan="3">Min</th>
+          {% for label in label_weights.keys() %}
+            <td>{{ '{:.03f}'.format(stats[label].min) }}</td>
+          {% endfor %}
+        </tr>
+        <tr>
+          <th colspan="3">Mean</th>
+          {% for label in label_weights.keys() %}
+            <td>{{ '{:.03f}'.format(stats[label].mean) }}</td>
+          {% endfor %}
+        </tr>
+        <tr>
+          <th colspan="3">Median</th>
+          {% for label in label_weights.keys() %}
+            <td>{{ '{:.03f}'.format(stats[label].median) }}</td>
+          {% endfor %}
+        </tr>
+        <tr>
+          <th colspan="3">Max</th>
+          {% for label in label_weights.keys() %}
+            <td>{{ '{:.03f}'.format(stats[label].max) }}</td>
           {% endfor %}
         </tr>
       </thead>
@@ -68,11 +72,12 @@
                   <img src="{{ path_prefix }}/{{ file_id }}" style="max-height: 100px;">
                 </a>
               </td>
-              <td>{{ scores['_total'] }}</td>
-              <td>{{ scores['_classifications'] }}</td>
-              {% for scorer in scorers %}
-                {% if scorer in scores %}
-                  <td>{{ '{:.03f}'.format(scores[scorer]) }}</td>
+              <td>{{ '{:.03f}'.format(scores['_total']) }}</td>
+              {% for label in label_weights.keys() %}
+                {% if label in scores %}
+                  <td style="background-color: rgb({{ '{:.01f}'.format((1-scores[label]) * 255) }}, {{ '{:.01f}'.format((1-scores[label]) * 255) }}, 255)">
+                    {{ '{:.03f}'.format(scores[label]) }}
+                  </td>
                 {% else %}
                   <td>-</td>
                 {% endif %}

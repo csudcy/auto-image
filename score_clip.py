@@ -7,18 +7,23 @@ from PIL import Image
 import open_clip
 
 LABEL_WEIGHTS = {
+    'an amazing photograph': 5,
+    'an interesting photograph': 5,
+
     'a dog': 1,
     'a cat': 1,
     'a pet': 1,
+
     'a person bare skin': -2,
+
+    'lots of text': -3,
+
     'a naked person': -4,
-    'an amazing photograph': 5,
-    'an interesting photograph': 5,
+
     'a terrible photograph': -5,
     'a screenshot': -5,
     'a photo of a screen': -5,
     'a photo of a document': -5,
-    'lots of text': -3,
 }
 LABELS = list(LABEL_WEIGHTS.keys())
 
