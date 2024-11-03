@@ -9,15 +9,25 @@
         <tr>
           <th>Score</th>
           <th>Count</th>
+          <th>Recent</th>
+          <th>Chosen</th>
         </tr>
       </thead>
       <tbody>
-        {% for score, count in total_counter.items() | sort(reverse=True) %}
+        {% for score, stats in score_stats.items() | sort(reverse=True) %}
           <tr>
-              <td>{{ score }}</td>
-              <td>{{ count }}</td>
+              <th>{{ score }}</th>
+              <td>{{ stats.count }}</td>
+              <td>{{ stats.recent_count or '-' }}</td>
+              <td>{{ stats.chosen_count or '-' }}</td>
           </tr>
         {% endfor %}
+        <tr>
+            <th>Total</th>
+            <td>{{ total_stats.count }}</td>
+            <td>{{ total_stats.recent_count or '-' }}</td>
+            <td>{{ total_stats.chosen_count or '-' }}</td>
+        </tr>
       </tbody>
     </table>
 
@@ -70,12 +80,12 @@
           <tr>
               <td>{{ result.file_id }}</td>
               <td>
-                <a href="{{ result.path }}" target="_blank">
-                  <img src="{{ result.path }}" style="max-height: 100px;">
+                <a href="{{ result.file_id }}" target="_blank">
+                  <img src="{{ result.file_id }}" style="max-height: 100px;">
                 </a>
               </td>
               <td>{{ '{:.03f}'.format(result.total) }}</td>
-              {% if result.chosen %}
+              {% if result.is_chosen %}
                 <td style="background-color: lightblue;">Yes</td>
               {% else %}
                 <td>-</td>

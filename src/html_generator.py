@@ -29,10 +29,28 @@ def generate(
     }
   
   # Calculate total stats
-  total_counter = collections.Counter([
-      round(result.total)
-      for result in result_set.results.values()
-  ])
+  score_stats = {}
+  total_stats = {
+      'count': 0,
+      'recent_count': 0,
+      'chosen_count': 0,
+  }
+  for result in result_set.results.values():
+    total = round(result.total)
+    if total not in score_stats:
+      score_stats[total] = {
+          'count': 0,
+          'recent_count': 0,
+          'chosen_count': 0,
+      }
+    score_stats[total]['count'] += 1
+    total_stats['count'] += 1
+    if result.is_recent:
+      score_stats[total]['recent_count'] += 1
+      total_stats['recent_count'] += 1
+    if result.is_chosen:
+      score_stats[total]['chosen_count'] += 1
+      total_stats['chosen_count'] += 1
 
   print('Generating HTML...')
   env = jinja2.Environment(
@@ -45,7 +63,8 @@ def generate(
       total_weight=sum(score_processor.LABEL_WEIGHTS.values()),
       stats=stats,
       results=results_list,
-      total_counter=total_counter,
+      score_stats=score_stats,
+      total_stats=total_stats,
   )
 
   print('Saving HTML...')

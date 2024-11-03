@@ -175,6 +175,6 @@ class Scorer:
         old_results.append(result)
 
     for result in recent_results[:top_recent_count]:
-      result.chosen = True
+      result.is_chosen = True
     for result in old_results[:top_old_count]:
-      result.chosen = True
+      result.is_chosen = True
