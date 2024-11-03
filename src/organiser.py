@@ -7,6 +7,7 @@ from src import result_manager
 def process(
     result_set: result_manager.ResultSet,
     output_folder: pathlib.Path,
+    apply: bool,
 ) -> None:
   print('Checking files...')
   # Find all files in the target folder
@@ -29,19 +30,22 @@ def process(
   files_to_remove = existing_file_set - chosen_file_set
   print(f'File operations: {len(files_to_add)} add, {len(files_to_remove)} remove')
 
-  # Remove old files
-  print(f'Removing {len(files_to_remove)} old files...')
-  for index, filename in enumerate(files_to_remove):
-    existing_files[filename].unlink()
-    if index % 20 == 0:
-      print(f'  Removed {index}...')
-  
-  # Copy new files
-  print(f'Copying {len(files_to_add)} new files...')
-  for index, filename in enumerate(files_to_add):
-    output_path = output_folder / filename
-    shutil.copy(chosen_files[filename], output_path)
-    if index % 20 == 0:
-      print(f'  Copied {index}...')
+  if apply:
+    # Remove old files
+    print(f'Removing {len(files_to_remove)} old files...')
+    for index, filename in enumerate(files_to_remove):
+      existing_files[filename].unlink()
+      if index % 20 == 0:
+        print(f'  Removed {index}...')
+    
+    # Copy new files
+    print(f'Copying {len(files_to_add)} new files...')
+    for index, filename in enumerate(files_to_add):
+      output_path = output_folder / filename
+      shutil.copy(chosen_files[filename], output_path)
+      if index % 20 == 0:
+        print(f'  Copied {index}...')
+  else:
+    print('Skipped applying file changes; use --apply to apply changes')
 
   print('Organising done!')

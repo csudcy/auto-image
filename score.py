@@ -49,6 +49,11 @@ def main() -> None:
       default=60,
       help='Percentage of output images to be recent (default: 60)',
   )
+  parser.add_argument(
+      '--apply',
+      action='store_true',
+      help='Copy the best files into output directory (default: False)',
+  )
   args = parser.parse_args()
 
   recent_delta = datetime.timedelta(days=args.recent_days)
@@ -61,7 +66,7 @@ def main() -> None:
   groups = scorer.find_groups()
   scorer.update_chosen(recent_delta, recent_count, old_count)
   html_generator.generate(result_set, groups)
-  organiser.process(result_set, args.output_dir)
+  organiser.process(result_set, args.output_dir, apply=args.apply)
 
 
 if __name__ == '__main__':
