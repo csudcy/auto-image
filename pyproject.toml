@@ -9,11 +9,8 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.9,<3.10"  # Compatible python versions must be declared here
-# Have to use 2.16 as that's the last version which includes a Mac Intel wheel
-tensorflow = "^2.16,<2.17"
-tensorflow-hub = ">=0.16.1"
 jinja2 = ">=3.1.4"
-opencv-python = ">=4.10.0.84"
 pillow = ">=11.0.0"
 torch = ">=2.0.0, <2.3" # Something about newer torch versions fails to install
 open_clip_torch = ">=2.29.0"
+numpy = "<2" # Looks like open clip uses numpy 1 (which outputs an error about not working with numpy 2)
