@@ -44,15 +44,13 @@ class Scorer:
 
   def __init__(
       self,
-      image_folder: pathlib.Path,
       result_set: result_manager.ResultSet,
       image_limit: Optional[int] = None,
   ):
-    self.image_folder = image_folder
     self.result_set = result_set
     self.image_limit = image_limit
 
-    self._all_files = list(self.image_folder.rglob('*'))
+    self._all_files = list(self.result_set.image_folder.rglob('*'))
     self._file_count = len(self._all_files)
     self._overall_processed = 0
     self._overall_time = time.perf_counter()

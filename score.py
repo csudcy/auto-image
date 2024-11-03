@@ -24,7 +24,7 @@ TOP_OLD_COUNT = 100
 
 if __name__ == '__main__':
   result_set = result_manager.ResultSet(IMAGE_FOLDER)
-  scorer = score_processor.Scorer(IMAGE_FOLDER, result_set, image_limit=IMAGE_LIMIT)
+  scorer = score_processor.Scorer(result_set, image_limit=IMAGE_LIMIT)
   scorer.process()
   scorer.update_chosen(RECENT_DELTA, TOP_RECENT_COUNT, TOP_OLD_COUNT)
   html_generator.generate(result_set)
