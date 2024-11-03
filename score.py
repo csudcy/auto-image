@@ -33,8 +33,15 @@ def main() -> None:
       help='Maximum number of images to process (default: all)',
   )
   parser.add_argument(
+      '--minimum-score',
+      type=float,
+      default=-2,
+      help='Minimum score for images to be used (default: -2)',
+  )
+  parser.add_argument(
       '--recent-days',
-      type=int, default=400,
+      type=int,
+      default=400,
       help='Number of days to consider a file recent (default: 400)',
   )
   parser.add_argument(
@@ -64,8 +71,8 @@ def main() -> None:
   scorer = score_processor.Scorer(result_set, image_limit=args.max_images)
   scorer.process()
   groups = scorer.find_groups()
-  scorer.update_chosen(recent_delta, recent_count, old_count)
-  html_generator.generate(result_set, groups)
+  scorer.update_chosen(recent_delta, args.minimum_score, recent_count, old_count)
+  html_generator.generate(result_set, groups, args.minimum_score)
   organiser.process(result_set, args.output_dir, apply=args.apply)
 
 

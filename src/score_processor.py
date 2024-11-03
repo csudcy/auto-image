@@ -178,6 +178,7 @@ class Scorer:
   def update_chosen(
       self,
       recent_delta: datetime.timedelta,
+      minimum_score: float,
       top_recent_count: int,
       top_old_count: int,
   ) -> None:
@@ -194,6 +195,9 @@ class Scorer:
     old_chosen_count = 0
     for result in results_list:
       result.is_recent = result.taken > recent_minimum
+
+      if result.total < minimum_score:
+        continue
 
       # Check this group hasn't already been chosen
       if result.group_index in used_groups:

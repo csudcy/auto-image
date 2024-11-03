@@ -9,6 +9,7 @@ from src import score_processor
 def generate(
     result_set: result_manager.ResultSet,
     groups: list[list[result_manager.Result]],
+    minimum_score: float,
 ) -> None:
   results_list = list(result_set.results.values())
   results_list.sort(key=lambda result: result.total, reverse=True)
@@ -63,6 +64,7 @@ def generate(
       total_weight=sum(score_processor.LABEL_WEIGHTS.values()),
       stats=stats,
       results=results_list,
+      minimum_score=minimum_score,
       score_stats=score_stats,
       total_stats=total_stats,
       groups=groups,

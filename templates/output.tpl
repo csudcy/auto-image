@@ -48,7 +48,7 @@
               {% for result in group %}
                 <td {% if result.is_chosen %}style="background-color: lightblue;"{% endif %}>
                   {{ result.file_id }}<br/>
-                  {{ result.total }}<br/>
+                  {{ '{:.03f}'.format(result.total) }}<br/>
                   {{ result.is_chosen and 'Yes' or '-' }}<br/>
                   <a href="{{ result.file_id }}" target="_blank">
                     <img src="{{ result.file_id }}" style="max-height: 100px;">
@@ -119,7 +119,9 @@
                   <img src="{{ result.file_id }}" style="max-height: 100px;">
                 </a>
               </td>
-              <td>{{ '{:.03f}'.format(result.total) }}</td>
+              <td {% if result.total < minimum_score %}style="background-color: lightpink;"{% endif %}>
+                {{ '{:.03f}'.format(result.total) }}
+              </td>
               {% if result.is_chosen %}
                 <td style="background-color: lightblue;">Yes</td>
               {% else %}
