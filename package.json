@@ -9,6 +9,7 @@
   "scripts": {
     "poetry:install": "./scripts/poetry_install.sh",
     "poetry:update": "./scripts/poetry_update.sh",
+    "score:local" : "./scripts/poetry_run.sh python3 score.py images/ images_chosen/",
     "score" : "./scripts/poetry_run.sh python3 score.py"
   },
   "author": "Nicholas Lee <csudcy@gmail.com>",
