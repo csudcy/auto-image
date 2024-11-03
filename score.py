@@ -1,14 +1,12 @@
 import collections
-from dataclasses import dataclass
 import datetime
 import pathlib
 import statistics
-import time
 
 import jinja2
 
 from src import result_manager
-import score_clip
+from src import score_processor
 
 CURRENT_FOLDER = pathlib.Path(__file__).parent
 IMAGE_FOLDER = CURRENT_FOLDER / 'images'
@@ -26,86 +24,9 @@ HTML_FILE = CURRENT_FOLDER / 'scores-clip-test.html'
 
 IMAGE_LIMIT = None
 
-EXTENSIONS = ('jpg', 'png')
-
-LABEL_SET = set(score_clip.LABELS)
-
 RECENT_DELTA = datetime.timedelta(weeks=56)
 TOP_RECENT_COUNT = 200
 TOP_OLD_COUNT = 100
-
-
-def process(result_set: result_manager.ResultSet) -> None:
-  class StatTracker():
-    processed: int = 0
-    time: float = time.perf_counter()
-
-  overall = StatTracker()
-  last_stats = StatTracker()
-
-  def _show_stats():
-    new_time = time.perf_counter()
-
-    diff_processed = overall.processed - last_stats.processed
-    diff_time = new_time - last_stats.time
-    if diff_processed and diff_time:
-      processed_per_minute = diff_processed / (diff_time / 60)
-    else:
-      processed_per_minute = 0
-
-    wall_time = new_time - overall.time
-    print(f'Done {index} files (scored {overall.processed} in {wall_time:.01f}s, {processed_per_minute:.01f} per minute)')
-
-    last_stats.processed = overall.processed
-    last_stats.time = new_time
-
-  print('Finding files...')
-  next_time = overall.time
-  all_files = list(IMAGE_FOLDER.rglob('*'))
-  file_count = len(all_files)
-
-  print(f'Processing {file_count} files...')
-  for index, path in enumerate(all_files):
-    if IMAGE_LIMIT and index >= IMAGE_LIMIT:
-      print('Hit limit; stopping...')
-      break
-
-    if not path.is_file():
-      # Skip directories
-      continue
-
-    extension = path.suffix.lower().lstrip('.')
-    if extension not in EXTENSIONS:
-      print(f'  Skipping non-image: {path.name}')
-      continue
-
-    if time.perf_counter() >= next_time:
-      _show_stats()
-      result_set.save()
-      next_time = time.perf_counter() + 5
-
-    # Check if the file has been scored already
-    file_id = str(path.relative_to(IMAGE_FOLDER))
-
-    # Process the scores
-    if file_id in result_set.results:
-      process_now = bool(LABEL_SET.difference(result_set.results[file_id].scores))
-    else:
-      process_now = True
-    if process_now:
-      try:
-        result_set.results[file_id] = result_manager.Result(
-            path=path,
-            scores=score_clip.get_score(path),
-        )
-      except Exception as ex:
-        print(f'  Error scoring {path.name} - {ex}')
-      overall.processed += 1
-
-  _show_stats()
-  result_set.save()
-
-  print('Processing done!')
 
 
 def _choose_top(results: list[result_manager.Result], count: int) -> None:
@@ -141,7 +62,7 @@ def output_html(result_set: result_manager.ResultSet) -> None:
 
   # Calculate label stats
   stats = {}
-  for label in score_clip.LABELS:
+  for label in score_processor.LABELS:
     label_scores = [
         result.scores[label]
         for result in result_set.results.values()
@@ -167,8 +88,8 @@ def output_html(result_set: result_manager.ResultSet) -> None:
   )
   template = env.get_template('output.tpl')
   html = template.render(
-      label_weights=score_clip.LABEL_WEIGHTS,
-      total_weight=sum(score_clip.LABEL_WEIGHTS.values()),
+      label_weights=score_processor.LABEL_WEIGHTS,
+      total_weight=sum(score_processor.LABEL_WEIGHTS.values()),
       stats=stats,
       results=results_list,
       total_counter=total_counter,
@@ -184,6 +105,7 @@ def output_html(result_set: result_manager.ResultSet) -> None:
 
 if __name__ == '__main__':
   result_set = result_manager.ResultSet(SCORE_FILE)
-  process(result_set)
+  scorer = score_processor.Scorer(IMAGE_FOLDER, result_set, image_limit=IMAGE_LIMIT)
+  scorer.process()
   classify(result_set)
   output_html(result_set)
