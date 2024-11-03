@@ -183,22 +183,30 @@ class Scorer:
   ) -> None:
     now = datetime.datetime.now()
     recent_minimum = now - recent_delta
-    recent_results = []
-    old_results = []
 
-    results_list = sorted(
+    results_list: list[result_manager.Result] = sorted(
         self.result_set.results.values(),
         key=lambda result: result.total,
         reverse=True,
     )
+    used_groups = []
+    recent_chosen_count = 0
+    old_chosen_count = 0
     for result in results_list:
       result.is_recent = result.taken > recent_minimum
-      if result.is_recent:
-        recent_results.append(result)
-      else:
-        old_results.append(result)
 
-    for result in recent_results[:top_recent_count]:
-      result.is_chosen = True
-    for result in old_results[:top_old_count]:
-      result.is_chosen = True
+      # Check this group hasn't already been chosen
+      if result.group_index in used_groups:
+        continue
+ 
+      if result.is_recent:
+        if recent_chosen_count < top_recent_count:
+          result.is_chosen = True
+          recent_chosen_count += 1
+      else:
+        if old_chosen_count < top_old_count:
+          result.is_chosen = True
+          old_chosen_count += 1
+      if result.is_chosen and result.group_index is not None:
+        used_groups.append(result.group_index)
+    print(f'Chose {recent_chosen_count} recent & {old_chosen_count} old')
