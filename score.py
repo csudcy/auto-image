@@ -14,7 +14,8 @@ import jinja2
 import score_clip
 
 CURRENT_FOLDER = pathlib.Path(__file__).parent
-IMAGE_FOLDER = CURRENT_FOLDER / 'images'
+# IMAGE_FOLDER = CURRENT_FOLDER / 'images'
+IMAGE_FOLDER = pathlib.Path('/Users/csudcy/Library/CloudStorage/Dropbox/Camera Uploads')
 SCORE_FILE = CURRENT_FOLDER / 'scores-clip.json'
 HTML_FILE = CURRENT_FOLDER / 'scores-clip.html'
 
