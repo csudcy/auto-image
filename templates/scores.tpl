@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Auto Image Testing</title>
+    <title>Auto Image - Scores</title>
   </head>
   <body>
     <h1>Counts</h1>
@@ -31,35 +31,6 @@
       </tbody>
     </table>
 
-    <h1>Groups</h1>
-    <table border="1">
-      <thead>
-        <tr>
-          <th>Group</th>
-          <th>Count</th>
-          <th colspan="99">Images</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for group in groups %}
-          <tr>
-              <th>{{ loop.index }}</th>
-              <td>{{ group | length }}</td>
-              {% for result in group %}
-                <td {% if result.is_chosen %}style="background-color: lightblue;"{% endif %}>
-                  {{ result.file_id }}<br/>
-                  {{ '{:.03f}'.format(result.total) }}<br/>
-                  {{ result.is_chosen and 'Yes' or '-' }}<br/>
-                  <a href="{{ result.file_id }}" target="_blank">
-                    <img src="{{ result.file_id }}" style="max-height: 100px;">
-                  </a>
-                </td>
-              {% endfor %}
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
     <h1>Scores</h1>
     <table border="1">
       <thead>
@@ -74,31 +45,31 @@
           {% endfor %}
         </tr>
         <tr>
-          <th colspan="3">Weight (Total: {{ total_weight }})</th>
+          <th colspan="5">Weight (Total: {{ total_weight }})</th>
           {% for weight in label_weights.values() %}
             <td>{{ weight }}</td>
           {% endfor %}
         </tr>
         <tr>
-          <th colspan="3">Min</th>
+          <th colspan="5">Min</th>
           {% for label in label_weights.keys() %}
             <td>{{ '{:.03f}'.format(stats[label].min) }}</td>
           {% endfor %}
         </tr>
         <tr>
-          <th colspan="3">Mean</th>
+          <th colspan="5">Mean</th>
           {% for label in label_weights.keys() %}
             <td>{{ '{:.03f}'.format(stats[label].mean) }}</td>
           {% endfor %}
         </tr>
         <tr>
-          <th colspan="3">Median</th>
+          <th colspan="5">Median</th>
           {% for label in label_weights.keys() %}
             <td>{{ '{:.03f}'.format(stats[label].median) }}</td>
           {% endfor %}
         </tr>
         <tr>
-          <th colspan="3">Max</th>
+          <th colspan="5">Max</th>
           {% for label in label_weights.keys() %}
             <td>{{ '{:.03f}'.format(stats[label].max) }}</td>
           {% endfor %}

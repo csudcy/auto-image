@@ -1,9 +1,15 @@
+import pathlib
 import statistics
 
 import jinja2
 
 from src import result_manager
 from src import score_processor
+
+JINJA_ENV = jinja2.Environment(
+    loader=jinja2.FileSystemLoader('templates'),
+    autoescape=jinja2.select_autoescape()
+)
 
 
 def generate(
@@ -54,12 +60,9 @@ def generate(
       total_stats['chosen_count'] += 1
 
   print('Generating HTML...')
-  env = jinja2.Environment(
-      loader=jinja2.FileSystemLoader('templates'),
-      autoescape=jinja2.select_autoescape()
-  )
-  template = env.get_template('output.tpl')
-  html = template.render(
+  _render_file(
+      'scores.tpl',
+      result_set.image_folder / '_auto_image_scores.html',
       label_weights=score_processor.LABEL_WEIGHTS,
       total_weight=sum(score_processor.LABEL_WEIGHTS.values()),
       stats=stats,
@@ -67,12 +70,22 @@ def generate(
       minimum_score=minimum_score,
       score_stats=score_stats,
       total_stats=total_stats,
+  )
+  _render_file(
+      'groups.tpl',
+      result_set.image_folder / '_auto_image_groups.html',
       groups=groups,
   )
 
-  print('Saving HTML...')
-  path = result_set.image_folder / '_auto_image.html'
-  with path.open('w') as f:
-    f.write(html)
-
   print('HTML done!')
+
+
+def _render_file(
+    template: str,
+    output_path: pathlib.Path,
+    **context
+) -> None:
+  template = JINJA_ENV.get_template(template)
+  html = template.render(**context)
+  with output_path.open('w') as f:
+    f.write(html)
