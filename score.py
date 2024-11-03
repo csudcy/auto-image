@@ -10,11 +10,9 @@ from src import score_processor
 
 CURRENT_FOLDER = pathlib.Path(__file__).parent
 IMAGE_FOLDER = CURRENT_FOLDER / 'images'
-SCORE_FILE = CURRENT_FOLDER / 'scores-clip-test.json'
 HTML_FILE = CURRENT_FOLDER / 'scores-clip-test.html'
 
 # IMAGE_FOLDER = pathlib.Path('/Users/csudcy/Library/CloudStorage/Dropbox/Camera Uploads')
-# SCORE_FILE = CURRENT_FOLDER / 'scores-clip.json'
 # HTML_FILE = CURRENT_FOLDER / 'scores-clip.html'
 
 # Copy chosen files to another directory
@@ -42,11 +40,7 @@ def classify(result_set: result_manager.ResultSet) -> None:
   old_results = []
 
   for result in result_set.results.values():
-    classification = score_clip.classify(result.scores)
-    result.total = sum(classification)
-
-    taken = result.parse_datetime()
-    result.is_recent = taken > recent_minimum
+    result.is_recent = result.taken > recent_minimum
     if result.is_recent:
       recent_results.append(result)
     else:
@@ -57,8 +51,8 @@ def classify(result_set: result_manager.ResultSet) -> None:
 
 
 def output_html(result_set: result_manager.ResultSet) -> None:
-  results_list = list(result_set.results.items())
-  results_list.sort(key=lambda path_result: path_result[1].total, reverse=True)
+  results_list = list(result_set.results.values())
+  results_list.sort(key=lambda result: result.total, reverse=True)
 
   # Calculate label stats
   stats = {}
@@ -93,7 +87,6 @@ def output_html(result_set: result_manager.ResultSet) -> None:
       stats=stats,
       results=results_list,
       total_counter=total_counter,
-      path_prefix=IMAGE_FOLDER.relative_to(CURRENT_FOLDER),
   )
 
   print('Saving HTML...')
@@ -104,7 +97,7 @@ def output_html(result_set: result_manager.ResultSet) -> None:
 
 
 if __name__ == '__main__':
-  result_set = result_manager.ResultSet(SCORE_FILE)
+  result_set = result_manager.ResultSet(IMAGE_FOLDER)
   scorer = score_processor.Scorer(IMAGE_FOLDER, result_set, image_limit=IMAGE_LIMIT)
   scorer.process()
   classify(result_set)

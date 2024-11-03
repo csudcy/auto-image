@@ -66,12 +66,12 @@
         </tr>
       </thead>
       <tbody>
-        {% for file_id, result in results %}
+        {% for result in results %}
           <tr>
-              <td>{{ file_id }}</td>
+              <td>{{ result.file_id }}</td>
               <td>
-                <a href="{{ path_prefix }}/{{ file_id }}" target="_blank">
-                  <img src="{{ path_prefix }}/{{ file_id }}" style="max-height: 100px;">
+                <a href="{{ result.path }}" target="_blank">
+                  <img src="{{ result.path }}" style="max-height: 100px;">
                 </a>
               </td>
               <td>{{ '{:.03f}'.format(result.total) }}</td>

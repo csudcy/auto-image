@@ -14,41 +14,55 @@ DATETIME_FORMAT = '%Y-%m-%d %H.%M.%S'
 
 @dataclass
 class Result:
-  path: str
+  path: pathlib.Path
+  file_id: str
   scores: dict[str, dict[str, float]]
+  taken: datetime.datetime
+
   total: float = 0
   is_recent: bool = False
   is_chosen: bool = False
 
-  def parse_datetime(self) -> datetime.datetime:
-    match = re.match(DATETIME_RE, self.path)
-    if match:
-      dt = match.group(1)
-      return datetime.datetime.strptime(dt, DATETIME_FORMAT)
-    else:
-      print(f'  Unable to parse date: {self.path}')
-      return datetime.datetime.min
-
 
 class ResultSet:
 
-  def __init__(self, path: pathlib.Path):
-    self.path = path
+  def __init__(self, image_folder: pathlib.Path):
+    self.image_folder = image_folder
+    self.path = image_folder / '_auto_image.json'
+    self.results = {}
     if self.path.exists():
       with self.path.open('r') as f:
         scores = json.load(f)
-      self.results = {
-          path: Result(path=path, scores=scores)
-          for path, scores in scores.items()
-      }
-    else:
-      self.results = {}
+      for file_id, scores in scores.items():
+        path = self.image_folder / file_id
+        result = self.get_result(path)
+        result.scores = scores
 
   def save(self) -> None:
     scores = {
-        path: result.scores
-        for path, result in self.results.items()
+        file_id: result.scores
+        for file_id, result in self.results.items()
     }
     with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
         json.dump(scores, temp_file, indent=2)
     os.replace(temp_file.name, self.path)
+  
+  def get_result(self, path: pathlib.Path) -> Result:
+    file_id = str(path.relative_to(self.image_folder))
+    if file_id not in self.results:
+      # Parse the datetime from the filename
+      match = re.match(DATETIME_RE, file_id)
+      if match:
+        dt = match.group(1)
+        taken = datetime.datetime.strptime(dt, DATETIME_FORMAT)
+      else:
+        print(f'  Unable to parse date: {file_id}')
+        taken = datetime.datetime.min
+
+      self.results[file_id] = Result(
+          path=path,
+          file_id=file_id,
+          scores={},
+          taken=taken,
+      )
+    return self.results[file_id]

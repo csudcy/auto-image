@@ -83,26 +83,8 @@ class Scorer:
         self._show_stats(index)
         self.result_set.save()
         next_time = time.perf_counter() + 5
-
-      # Check if the file has been scored already
-      file_id = str(path.relative_to(self.image_folder))
-
-      # Process the scores
-      if file_id in self.result_set.results:
-        process_now = bool(LABEL_SET.difference(self.result_set.results[file_id].scores))
-      else:
-        process_now = True
-      if process_now:
-        if self._model is None:
-          self._init_model()
-        try:
-          self.result_set.results[file_id] = result_manager.Result(
-              path=path,
-              scores=self._score(path),
-          )
-        except Exception as ex:
-          print(f'  Error scoring {path.name} - {ex}')
-        self._overall_processed += 1
+      
+      self._update_score(path)
 
     self._show_stats(index)
     self.result_set.save()
@@ -124,6 +106,28 @@ class Scorer:
 
     self._stats_last_processed = self._overall_processed
     self._stats_last_time = new_time
+
+  def _update_score(self, path: pathlib.Path) -> None:
+    # Get the result for this path
+    result = self.result_set.get_result(path)
+
+    # Process the scores (when necessary)
+    if LABEL_SET.difference(result.scores):
+      if self._model is None:
+        self._init_model()
+      self._overall_processed += 1
+      try:
+        result.scores = self._score(path)
+      except Exception as ex:
+        print(f'  Error scoring {path.name} - {ex}')
+        return
+
+    # Calculate the total
+    weighted_score = [
+        round(LABEL_WEIGHTS[label] * result.scores[label], 3)
+        for label in LABELS
+    ]
+    result.total = sum(weighted_score)
 
   def _init_model(self) -> None:
     model, _, preprocess = open_clip.create_model_and_transforms('ViT-B-32', pretrained='laion2b_s34b_b79k')
@@ -147,9 +151,3 @@ class Scorer:
       image_features /= image_features.norm(dim=-1, keepdim=True)
       text_probs = (100.0 * image_features @ self._text_features.T).softmax(dim=-1)
     return dict(zip(LABELS, text_probs.tolist()[0]))
-
-  def classify(self, score: dict[str, float]) -> float:
-    return [
-        round(LABEL_WEIGHTS[label] * score[label], 3)
-        for label in LABELS
-    ]
