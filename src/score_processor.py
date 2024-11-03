@@ -1,6 +1,7 @@
 
 # Based on https://pypi.org/project/open-clip-torch/
 
+import datetime
 import pathlib
 import time
 from typing import Optional
@@ -151,3 +152,31 @@ class Scorer:
       image_features /= image_features.norm(dim=-1, keepdim=True)
       text_probs = (100.0 * image_features @ self._text_features.T).softmax(dim=-1)
     return dict(zip(LABELS, text_probs.tolist()[0]))
+
+  def update_chosen(
+      self,
+      recent_delta: datetime.timedelta,
+      top_recent_count: int,
+      top_old_count: int,
+  ) -> None:
+    now = datetime.datetime.now()
+    recent_minimum = now - recent_delta
+    recent_results = []
+    old_results = []
+
+    results_list = sorted(
+        self.result_set.results.values(),
+        key=lambda result: result.total,
+        reverse=True,
+    )
+    for result in results_list:
+      result.is_recent = result.taken > recent_minimum
+      if result.is_recent:
+        recent_results.append(result)
+      else:
+        old_results.append(result)
+
+    for result in recent_results[:top_recent_count]:
+      result.chosen = True
+    for result in old_results[:top_old_count]:
+      result.chosen = True

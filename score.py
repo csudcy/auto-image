@@ -27,29 +27,6 @@ TOP_RECENT_COUNT = 200
 TOP_OLD_COUNT = 100
 
 
-def _choose_top(results: list[result_manager.Result], count: int) -> None:
-  results.sort(key=lambda result: result.total, reverse=True)
-  for result in results[:count]:
-    result.chosen = True
-
-
-def classify(result_set: result_manager.ResultSet) -> None:
-  now = datetime.datetime.now()
-  recent_minimum = now - RECENT_DELTA
-  recent_results = []
-  old_results = []
-
-  for result in result_set.results.values():
-    result.is_recent = result.taken > recent_minimum
-    if result.is_recent:
-      recent_results.append(result)
-    else:
-      old_results.append(result)
-
-  _choose_top(recent_results, TOP_RECENT_COUNT)
-  _choose_top(old_results, TOP_OLD_COUNT)
-
-
 def output_html(result_set: result_manager.ResultSet) -> None:
   results_list = list(result_set.results.values())
   results_list.sort(key=lambda result: result.total, reverse=True)
@@ -100,5 +77,5 @@ if __name__ == '__main__':
   result_set = result_manager.ResultSet(IMAGE_FOLDER)
   scorer = score_processor.Scorer(IMAGE_FOLDER, result_set, image_limit=IMAGE_LIMIT)
   scorer.process()
-  classify(result_set)
+  scorer.update_chosen(RECENT_DELTA, TOP_RECENT_COUNT, TOP_OLD_COUNT)
   output_html(result_set)
