@@ -8,6 +8,7 @@ from src import score_processor
 
 def generate(
     result_set: result_manager.ResultSet,
+    groups: list[list[result_manager.Result]],
 ) -> None:
   results_list = list(result_set.results.values())
   results_list.sort(key=lambda result: result.total, reverse=True)
@@ -64,6 +65,7 @@ def generate(
       results=results_list,
       score_stats=score_stats,
       total_stats=total_stats,
+      groups=groups,
   )
 
   print('Saving HTML...')

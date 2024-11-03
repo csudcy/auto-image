@@ -5,6 +5,7 @@ import os
 import pathlib
 import re
 import tempfile
+from typing import Optional
 
 # 2024-10-21 10.52.09-1.jpg
 # skin-2018-07-18 12.59.08-2.jpg
@@ -21,6 +22,7 @@ class Result:
   taken: datetime.datetime
 
   total: float = 0
+  group_index: Optional[int] = None
   is_recent: bool = False
   is_chosen: bool = False
 

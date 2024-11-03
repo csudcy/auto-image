@@ -11,6 +11,7 @@ from src import score_processor
 # Remove non-chosen files
 # Check for very similar photos & choose the best one (before choosing top)
 # Choose seasonal photos from previous years?
+# Check if image will look good at specific zoom/crop
 
 
 def main() -> None:
@@ -57,8 +58,9 @@ def main() -> None:
   result_set = result_manager.ResultSet(args.input_dir)
   scorer = score_processor.Scorer(result_set, image_limit=args.max_images)
   scorer.process()
+  groups = scorer.find_groups()
   scorer.update_chosen(recent_delta, recent_count, old_count)
-  html_generator.generate(result_set)
+  html_generator.generate(result_set, groups)
   organiser.process(result_set, args.output_dir)
 
 

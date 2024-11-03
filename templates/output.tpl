@@ -31,6 +31,35 @@
       </tbody>
     </table>
 
+    <h1>Groups</h1>
+    <table border="1">
+      <thead>
+        <tr>
+          <th>Group</th>
+          <th>Count</th>
+          <th colspan="99">Images</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for group in groups %}
+          <tr>
+              <th>{{ loop.index }}</th>
+              <td>{{ group | length }}</td>
+              {% for result in group %}
+                <td {% if result.is_chosen %}style="background-color: lightblue;"{% endif %}>
+                  {{ result.file_id }}<br/>
+                  {{ result.total }}<br/>
+                  {{ result.is_chosen and 'Yes' or '-' }}<br/>
+                  <a href="{{ result.file_id }}" target="_blank">
+                    <img src="{{ result.file_id }}" style="max-height: 100px;">
+                  </a>
+                </td>
+              {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
     <h1>Scores</h1>
     <table border="1">
       <thead>
@@ -78,7 +107,13 @@
       <tbody>
         {% for result in results %}
           <tr>
-              <td>{{ result.file_id }}</td>
+              <td>
+                {{ result.file_id }}
+                {% if result.group_index %}
+                  <br/>
+                  Group: <span style="background-color: lightgreen;">{{ result.group_index }}</span>.
+                {% endif %}
+              </td>
               <td>
                 <a href="{{ result.file_id }}" target="_blank">
                   <img src="{{ result.file_id }}" style="max-height: 100px;">

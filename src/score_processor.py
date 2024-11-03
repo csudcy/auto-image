@@ -151,6 +151,30 @@ class Scorer:
       text_probs = (100.0 * image_features @ self._text_features.T).softmax(dim=-1)
     return dict(zip(LABELS, text_probs.tolist()[0]))
 
+  def find_groups(
+      self,
+      maximum_delta: datetime.timedelta = datetime.timedelta(seconds=8),
+  ) -> list[list[result_manager.Result]]:
+    print('Grouping images...')
+    results_list = sorted(
+        self.result_set.results.values(),
+        key=lambda result: result.taken,
+    )
+    groups = []
+    previous_result: result_manager.Result = results_list[0]
+    result: result_manager.Result
+    for result in results_list[1:]:
+      delta = result.taken - previous_result.taken
+      if delta <= maximum_delta:
+        if previous_result.group_index is None:
+          groups.append([previous_result])
+          previous_result.group_index = len(groups)
+        groups[-1].append(result)
+        result.group_index = previous_result.group_index
+      previous_result = result
+    print(f'Found {len(groups)} group(s)!')
+    return groups
+
   def update_chosen(
       self,
       recent_delta: datetime.timedelta,
