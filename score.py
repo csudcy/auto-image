@@ -1,31 +1,28 @@
 import collections
 from dataclasses import dataclass
 import datetime
-import json
-import os
 import pathlib
-import re
 import statistics
-import tempfile
 import time
 
 import jinja2
 
+from src import result_manager
 import score_clip
 
 CURRENT_FOLDER = pathlib.Path(__file__).parent
-# IMAGE_FOLDER = CURRENT_FOLDER / 'images'
-IMAGE_FOLDER = pathlib.Path('/Users/csudcy/Library/CloudStorage/Dropbox/Camera Uploads')
-SCORE_FILE = CURRENT_FOLDER / 'scores-clip.json'
-HTML_FILE = CURRENT_FOLDER / 'scores-clip.html'
+IMAGE_FOLDER = CURRENT_FOLDER / 'images'
+SCORE_FILE = CURRENT_FOLDER / 'scores-clip-test.json'
+HTML_FILE = CURRENT_FOLDER / 'scores-clip-test.html'
+
+# IMAGE_FOLDER = pathlib.Path('/Users/csudcy/Library/CloudStorage/Dropbox/Camera Uploads')
+# SCORE_FILE = CURRENT_FOLDER / 'scores-clip.json'
+# HTML_FILE = CURRENT_FOLDER / 'scores-clip.html'
 
 # Copy chosen files to another directory
 # Remove non-chosen files
 # Check for very similar photos & choose the best one (before choosing top)
 # Choose seasonal photos from previous years?
-
-TOTAL_KEY = '_total'
-ORDER_BY = TOTAL_KEY
 
 IMAGE_LIMIT = None
 
@@ -37,47 +34,8 @@ RECENT_DELTA = datetime.timedelta(weeks=56)
 TOP_RECENT_COUNT = 200
 TOP_OLD_COUNT = 100
 
-# 2024-10-21 10.52.09-1.jpg
-# skin-2018-07-18 12.59.08-2.jpg
-DATETIME_RE = r'.*(\d{4}-\d{2}-\d{2} \d{2}.\d{2}.\d{2})'
-DATETIME_FORMAT = '%Y-%m-%d %H.%M.%S'
 
-
-@dataclass
-class Result:
-  path: str
-  scores: dict[str, float]
-  total: float = 0
-  is_recent: bool = False
-  is_chosen: bool = False
-
-
-ResultsType = dict[str, Result]
-
-
-def _load_results() -> ResultsType:
-  if SCORE_FILE.exists():
-    with SCORE_FILE.open('r') as f:
-      scores = json.load(f)
-    return {
-        path: Result(path=path, scores=scores)
-        for path, scores in scores.items()
-    }
-  else:
-    return {}
-
-
-def _save_results(results: ResultsType) -> None:
-  scores = {
-      path: result.scores
-      for path, result in results.items()
-  }
-  with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
-      json.dump(scores, temp_file, indent=2)
-  os.replace(temp_file.name, SCORE_FILE)
-
-
-def process() -> ResultsType:
+def process(result_set: result_manager.ResultSet) -> None:
   class StatTracker():
     processed: int = 0
     time: float = time.perf_counter()
@@ -102,7 +60,6 @@ def process() -> ResultsType:
     last_stats.time = new_time
 
   print('Finding files...')
-  results = _load_results()
   next_time = overall.time
   all_files = list(IMAGE_FOLDER.rglob('*'))
   file_count = len(all_files)
@@ -124,20 +81,20 @@ def process() -> ResultsType:
 
     if time.perf_counter() >= next_time:
       _show_stats()
-      _save_results(results)
+      result_set.save()
       next_time = time.perf_counter() + 5
 
     # Check if the file has been scored already
     file_id = str(path.relative_to(IMAGE_FOLDER))
 
     # Process the scores
-    if file_id in results:
-      process_now = bool(LABEL_SET.difference(results[file_id].scores))
+    if file_id in result_set.results:
+      process_now = bool(LABEL_SET.difference(result_set.results[file_id].scores))
     else:
       process_now = True
     if process_now:
       try:
-        results[file_id] = Result(
+        result_set.results[file_id] = result_manager.Result(
             path=path,
             scores=score_clip.get_score(path),
         )
@@ -146,40 +103,28 @@ def process() -> ResultsType:
       overall.processed += 1
 
   _show_stats()
-  _save_results(results)
+  result_set.save()
 
   print('Processing done!')
 
-  return results
 
-
-def _choose_top(results: list[Result], count: int) -> None:
+def _choose_top(results: list[result_manager.Result], count: int) -> None:
   results.sort(key=lambda result: result.total, reverse=True)
   for result in results[:count]:
     result.chosen = True
 
 
-def _parse_datetime(filename: str) -> datetime.datetime:
-  match = re.match(DATETIME_RE, filename)
-  if match:
-    dt = match.group(1)
-    return datetime.datetime.strptime(dt, DATETIME_FORMAT)
-  else:
-    print(f'  Unable to parse date: {filename}')
-    return datetime.datetime.min
-
-
-def classify(results: ResultsType) -> None:
+def classify(result_set: result_manager.ResultSet) -> None:
   now = datetime.datetime.now()
   recent_minimum = now - RECENT_DELTA
   recent_results = []
   old_results = []
 
-  for result in results.values():
+  for result in result_set.results.values():
     classification = score_clip.classify(result.scores)
     result.total = sum(classification)
 
-    taken = _parse_datetime(result.path)
+    taken = result.parse_datetime()
     result.is_recent = taken > recent_minimum
     if result.is_recent:
       recent_results.append(result)
@@ -190,8 +135,8 @@ def classify(results: ResultsType) -> None:
   _choose_top(old_results, TOP_OLD_COUNT)
 
 
-def output_html(results: ResultsType) -> None:
-  results_list = list(results.items())
+def output_html(result_set: result_manager.ResultSet) -> None:
+  results_list = list(result_set.results.items())
   results_list.sort(key=lambda path_result: path_result[1].total, reverse=True)
 
   # Calculate label stats
@@ -199,7 +144,7 @@ def output_html(results: ResultsType) -> None:
   for label in score_clip.LABELS:
     label_scores = [
         result.scores[label]
-        for result in results.values()
+        for result in result_set.results.values()
         if label in result.scores
     ]
     stats[label] = {
@@ -212,7 +157,7 @@ def output_html(results: ResultsType) -> None:
   # Calculate total stats
   total_counter = collections.Counter([
       round(result.total)
-      for result in results.values()
+      for result in result_set.results.values()
   ])
 
   print('Generating HTML...')
@@ -238,6 +183,7 @@ def output_html(results: ResultsType) -> None:
 
 
 if __name__ == '__main__':
-  results = process()
-  classify(results)
-  output_html(results)
+  result_set = result_manager.ResultSet(SCORE_FILE)
+  process(result_set)
+  classify(result_set)
+  output_html(result_set)
