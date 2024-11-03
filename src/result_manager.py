@@ -8,8 +8,9 @@ import tempfile
 
 # 2024-10-21 10.52.09-1.jpg
 # skin-2018-07-18 12.59.08-2.jpg
-DATETIME_RE = r'.*(\d{4}-\d{2}-\d{2} \d{2}.\d{2}.\d{2})'
-DATETIME_FORMAT = '%Y-%m-%d %H.%M.%S'
+# IMG_20240608_141605_1.jpg
+DATETIME_RE = r'.*(\d{4}-?\d{2}-?\d{2}[ _]\d{2}.?\d{2}.?\d{2})'
+DATETIME_FORMAT = '%Y%m%d %H%M%S'
 
 
 @dataclass
@@ -54,6 +55,9 @@ class ResultSet:
       match = re.match(DATETIME_RE, file_id)
       if match:
         dt = match.group(1)
+        dt = dt.replace('-', '')
+        dt = dt.replace('.', '')
+        dt = dt.replace('_', ' ')
         taken = datetime.datetime.strptime(dt, DATETIME_FORMAT)
       else:
         print(f'  Unable to parse date: {file_id}')
