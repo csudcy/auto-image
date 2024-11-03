@@ -10,4 +10,4 @@ if [ -z "$(poetry env list)" ]; then
   ./scripts/poetry_install.sh
 fi
 
-poetry run $@
+poetry run "$@"
