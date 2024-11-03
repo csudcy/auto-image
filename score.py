@@ -3,6 +3,7 @@ import datetime
 import pathlib
 
 from src import html_generator
+from src import organiser
 from src import result_manager
 from src import score_processor
 
@@ -58,6 +59,7 @@ def main() -> None:
   scorer.process()
   scorer.update_chosen(recent_delta, recent_count, old_count)
   html_generator.generate(result_set)
+  organiser.process(result_set, args.output_dir)
 
 
 if __name__ == '__main__':

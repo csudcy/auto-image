@@ -1,4 +1,3 @@
-import collections
 import statistics
 
 import jinja2

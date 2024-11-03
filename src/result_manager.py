@@ -30,7 +30,7 @@ class ResultSet:
   def __init__(self, image_folder: pathlib.Path):
     self.image_folder = image_folder
     self.path = image_folder / '_auto_image.json'
-    self.results = {}
+    self.results: dict[Result] = {}
     if self.path.exists():
       with self.path.open('r') as f:
         scores = json.load(f)
