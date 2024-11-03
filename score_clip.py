@@ -4,6 +4,7 @@ import pathlib
 
 from PIL import Image
 import open_clip
+import torch
 
 LABEL_WEIGHTS = {
     'an interesting photo': 5,
@@ -48,10 +49,13 @@ class Model:
     self.text_features = text_features
   
   def score(self, image_path: pathlib.Path) -> dict[str, float]:
-    image = self.preprocess(Image.open(image_path)).unsqueeze(0)
-    image_features = self.model.encode_image(image)
-    image_features /= image_features.norm(dim=-1, keepdim=True)
-    text_probs = (100.0 * image_features @ self.text_features.T).softmax(dim=-1)
+    # This is supposed to make things faster/more efficient but doesn't seem to do much;
+    # however, it does stop memory going crazy & getting the process killed after some time.
+    with torch.no_grad(), torch.cuda.amp.autocast():
+      image = self.preprocess(Image.open(image_path)).unsqueeze(0)
+      image_features = self.model.encode_image(image)
+      image_features /= image_features.norm(dim=-1, keepdim=True)
+      text_probs = (100.0 * image_features @ self.text_features.T).softmax(dim=-1)
     return dict(zip(LABELS, text_probs.tolist()[0]))
 
 

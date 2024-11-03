@@ -100,13 +100,21 @@ def process() -> ResultsType:
     last_stats.processed = overall.processed
     last_stats.time = new_time
 
-  print('Processing...')
+  print('Finding files...')
   results = _load_results()
   next_time = overall.time
-  for index, path in enumerate(IMAGE_FOLDER.rglob('*')):
+  all_files = list(IMAGE_FOLDER.rglob('*'))
+  file_count = len(all_files)
+
+  print(f'Processing {file_count} files...')
+  for index, path in enumerate(all_files):
     if IMAGE_LIMIT and index >= IMAGE_LIMIT:
       print('Hit limit; stopping...')
       break
+
+    if not path.is_file():
+      # Skip directories
+      continue
 
     extension = path.suffix.lower().lstrip('.')
     if extension not in EXTENSIONS:
