@@ -68,13 +68,17 @@ def generate(
       stats=stats,
       results=results_list,
       minimum_score=minimum_score,
-      score_stats=score_stats,
-      total_stats=total_stats,
   )
   _render_file(
       'groups.tpl',
       result_set.image_folder / '_auto_image_groups.html',
       groups=groups,
+  )
+  _render_file(
+      'counts.tpl',
+      result_set.image_folder / '_auto_image_counts.html',
+      score_stats=score_stats,
+      total_stats=total_stats,
   )
 
   print('HTML done!')

@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Auto Image - Groups</title>
+    <title>Groups - Auto Image</title>
   </head>
   <body>
     <h1>Groups</h1>
