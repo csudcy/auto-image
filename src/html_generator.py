@@ -1,4 +1,5 @@
 import pathlib
+import shutil
 import statistics
 
 import jinja2
@@ -60,9 +61,13 @@ def generate(
       total_stats['chosen_count'] += 1
 
   print('Generating HTML...')
+  html_dir = result_set.image_folder / '_auto_image'
+  if html_dir.exists():
+    shutil.rmtree(html_dir)
+  html_dir.mkdir()
   _render_file(
       'scores.tpl',
-      result_set.image_folder / '_auto_image_scores.html',
+      html_dir / 'scores.html',
       label_weights=score_processor.LABEL_WEIGHTS,
       total_weight=sum(score_processor.LABEL_WEIGHTS.values()),
       stats=stats,
@@ -71,12 +76,12 @@ def generate(
   )
   _render_file(
       'groups.tpl',
-      result_set.image_folder / '_auto_image_groups.html',
+      html_dir / 'groups.html',
       groups=groups,
   )
   _render_file(
       'counts.tpl',
-      result_set.image_folder / '_auto_image_counts.html',
+      html_dir / 'counts.html',
       score_stats=score_stats,
       total_stats=total_stats,
   )
