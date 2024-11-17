@@ -24,6 +24,7 @@ nvidia-nccl-cu12==2.19.3 ; platform_system == "Linux" and platform_machine == "x
 nvidia-nvjitlink-cu12==12.6.77 ; platform_system == "Linux" and platform_machine == "x86_64" and python_version >= "3.9" and python_version < "3.10"
 nvidia-nvtx-cu12==12.1.105 ; platform_system == "Linux" and platform_machine == "x86_64" and python_version >= "3.9" and python_version < "3.10"
 open-clip-torch==2.29.0 ; python_version >= "3.9" and python_version < "3.10"
+opencv-python==4.10.0.84 ; python_version >= "3.9" and python_version < "3.10"
 packaging==24.2 ; python_version >= "3.9" and python_version < "3.10"
 pillow==11.0.0 ; python_version >= "3.9" and python_version < "3.10"
 pyyaml==6.0.2 ; python_version >= "3.9" and python_version < "3.10"

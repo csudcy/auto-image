@@ -14,3 +14,4 @@ pillow = ">=11.0.0"
 torch = ">=2.0.0, <2.3" # Something about newer torch versions fails to install
 open_clip_torch = ">=2.29.0"
 numpy = "<2" # Looks like open clip uses numpy 1 (which outputs an error about not working with numpy 2)
+opencv-python = ">=4.10.0.84"
