@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import pathlib
 import shutil
 import statistics
@@ -13,6 +14,16 @@ JINJA_ENV = jinja2.Environment(
 )
 
 SCORES_PER_PAGE = 1000
+
+
+@dataclass
+class Counts:
+  overall_total: int = 0
+  overall_chosen: int = 0
+  recent_total: int = 0
+  recent_chosen: int = 0
+  old_total: int = 0
+  old_chosen: int = 0
 
 
 def generate(
@@ -39,28 +50,31 @@ def generate(
     }
   
   # Calculate total stats
-  score_stats = {}
-  total_stats = {
-      'count': 0,
-      'recent_count': 0,
-      'chosen_count': 0,
-  }
+  score_counts = {}
+  total_counts = Counts()
   for result in result_set.results.values():
     total = round(result.total)
-    if total not in score_stats:
-      score_stats[total] = {
-          'count': 0,
-          'recent_count': 0,
-          'chosen_count': 0,
-      }
-    score_stats[total]['count'] += 1
-    total_stats['count'] += 1
-    if result.is_recent:
-      score_stats[total]['recent_count'] += 1
-      total_stats['recent_count'] += 1
+    if total not in score_counts:
+      score_counts[total] = Counts()
+
+    score_counts[total].overall_total += 1
+    total_counts.overall_total += 1
     if result.is_chosen:
-      score_stats[total]['chosen_count'] += 1
-      total_stats['chosen_count'] += 1
+      score_counts[total].overall_chosen += 1
+      total_counts.overall_chosen += 1
+
+    if result.is_recent:
+      score_counts[total].recent_total += 1
+      total_counts.recent_total += 1
+      if result.is_chosen:
+        score_counts[total].recent_chosen += 1
+        total_counts.recent_chosen += 1
+    else:
+      score_counts[total].old_total += 1
+      total_counts.old_total += 1
+      if result.is_chosen:
+        score_counts[total].old_chosen += 1
+        total_counts.old_chosen += 1
 
   print('Generating HTML...')
   html_dir = result_set.image_folder / '_auto_image'
@@ -91,8 +105,8 @@ def generate(
   _render_file(
       'counts.tpl',
       html_dir / 'counts.html',
-      score_stats=score_stats,
-      total_stats=total_stats,
+      score_counts=score_counts,
+      total_counts=total_counts,
       minimum_score=minimum_score,
   )
 
