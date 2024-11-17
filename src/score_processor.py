@@ -14,27 +14,20 @@ from src import result_manager
 
 EXTENSIONS = ('jpg', 'png')
 
+PHRASE_GOOD = ' '.join((
+    'A photo thats interesting or fun, with a good subject.',
+    'A photo thats safe for work photo - people, animals, nature, etc.',
+    'A photo thats nice and clear & not blurry.',
+))
+PHRASE_BAD = ' '.join((
+    'A photo thats featureless or boring with no subject.',
+    'A photo thats not safe for work - bare skin, injuries, etc.',
+    'A photo of a document, screenshot, or lots of text.',
+    'A photo thats blurry and unclear.',
+))
 LABEL_WEIGHTS = {
-    'an interesting photo': 5,
-
-    'a photo of animals': 3,
-
-    'a photo of a dog': 2,
-    'a photo of a cat': 2,
-    'a fun photo': 2,
-    'a photo of people': 2,
-
-    'a photo of a concert': 1,
-    'a photo of a festival': 1,
-    'a photo of the theatre': 1,
-
-    'lots of text': -2,
-
-    'a persons bare skin': -4,
-    'a screenshot': -4,
-    'a photo of a document': -4,
-
-    'a boring photo': -5,
+  PHRASE_GOOD: 5,
+  PHRASE_BAD: -5,
 }
 LABELS = list(LABEL_WEIGHTS.keys())
 LABEL_SET = set(LABELS)
