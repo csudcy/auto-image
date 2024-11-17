@@ -1,12 +1,13 @@
 <html>
   <head>
-    <title>Scores - Auto Image</title>
+    <title>Scores {{ index_min }}-{{ index_max }} - Auto Image</title>
   </head>
   <body>
-    <h1>Scores</h1>
+    <h1>Scores {{ index_min }}-{{ index_max }}</h1>
     <table border="1">
       <thead>
         <tr>
+          <th>Index</th>
           <th>File</th>
           <th>Image</th>
           <th>Total</th>
@@ -17,31 +18,31 @@
           {% endfor %}
         </tr>
         <tr>
-          <th colspan="5">Weight (Total: {{ total_weight }})</th>
+          <th colspan="6">Weight (Total: {{ total_weight }})</th>
           {% for weight in label_weights.values() %}
             <td>{{ weight }}</td>
           {% endfor %}
         </tr>
         <tr>
-          <th colspan="5">Min</th>
+          <th colspan="6">Min</th>
           {% for label in label_weights.keys() %}
             <td>{{ '{:.03f}'.format(stats[label].min) }}</td>
           {% endfor %}
         </tr>
         <tr>
-          <th colspan="5">Mean</th>
+          <th colspan="6">Mean</th>
           {% for label in label_weights.keys() %}
             <td>{{ '{:.03f}'.format(stats[label].mean) }}</td>
           {% endfor %}
         </tr>
         <tr>
-          <th colspan="5">Median</th>
+          <th colspan="6">Median</th>
           {% for label in label_weights.keys() %}
             <td>{{ '{:.03f}'.format(stats[label].median) }}</td>
           {% endfor %}
         </tr>
         <tr>
-          <th colspan="5">Max</th>
+          <th colspan="6">Max</th>
           {% for label in label_weights.keys() %}
             <td>{{ '{:.03f}'.format(stats[label].max) }}</td>
           {% endfor %}
@@ -50,6 +51,7 @@
       <tbody>
         {% for result in results %}
           <tr>
+              <td>{{ loop.index0 + index_min }}</td>
               <td>
                 {{ result.file_id }}
                 {% if result.group_index %}
@@ -58,8 +60,8 @@
                 {% endif %}
               </td>
               <td>
-                <a href="{{ result.file_id }}" target="_blank">
-                  <img src="{{ result.file_id }}" style="max-height: 100px;">
+                <a href="../{{ result.file_id }}" target="_blank">
+                  <img src="../{{ result.file_id }}" style="max-height: 100px;">
                 </a>
               </td>
               <td {% if result.total < minimum_score %}style="background-color: lightpink;"{% endif %}>

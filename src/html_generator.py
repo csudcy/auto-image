@@ -12,6 +12,8 @@ JINJA_ENV = jinja2.Environment(
     autoescape=jinja2.select_autoescape()
 )
 
+SCORES_PER_PAGE = 1000
+
 
 def generate(
     result_set: result_manager.ResultSet,
@@ -65,15 +67,22 @@ def generate(
   if html_dir.exists():
     shutil.rmtree(html_dir)
   html_dir.mkdir()
-  _render_file(
-      'scores.tpl',
-      html_dir / 'scores.html',
-      label_weights=score_processor.LABEL_WEIGHTS,
-      total_weight=sum(score_processor.LABEL_WEIGHTS.values()),
-      stats=stats,
-      results=results_list,
-      minimum_score=minimum_score,
-  )
+  total_weight = sum(score_processor.LABEL_WEIGHTS.values())
+  for index in range(0, len(results_list), SCORES_PER_PAGE):
+    results_page = results_list[index:index+SCORES_PER_PAGE]
+    index_min = index + 1
+    index_max = index + len(results_page)
+    _render_file(
+        'scores.tpl',
+        html_dir / f'scores_{index_min}_{index_max}.html',
+        label_weights=score_processor.LABEL_WEIGHTS,
+        total_weight=total_weight,
+        stats=stats,
+        index_min=index_min,
+        index_max=index_max,
+        results=results_page,
+        minimum_score=minimum_score,
+    )
   _render_file(
       'groups.tpl',
       html_dir / 'groups.html',
