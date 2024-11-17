@@ -13,6 +13,7 @@ from typing import Optional
 DATETIME_RE = r'.*(\d{4}-?\d{2}-?\d{2}[ _]\d{2}.?\d{2}.?\d{2})'
 DATETIME_FORMAT = '%Y%m%d %H%M%S'
 
+CENTRE_KEY = '_centre'
 
 @dataclass
 class Result:
@@ -21,6 +22,7 @@ class Result:
   scores: dict[str, dict[str, float]]
   taken: datetime.datetime
 
+  centre: Optional[tuple[float, float]] = None
   total: float = 0
   group_index: Optional[int] = None
   is_recent: bool = False
@@ -39,13 +41,15 @@ class ResultSet:
       for file_id, scores in scores.items():
         path = self.image_folder / file_id
         result = self.get_result(path)
+        if CENTRE_KEY in scores:
+          result.centre = scores.pop(CENTRE_KEY)
         result.scores = scores
 
   def save(self) -> None:
-    scores = {
-        file_id: result.scores
-        for file_id, result in self.results.items()
-    }
+    scores = {}
+    for file_id, result in self.results.items():
+      scores[file_id] = dict(**result.scores)
+      scores[file_id][CENTRE_KEY] = result.centre
     with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
         json.dump(scores, temp_file, indent=2)
     os.replace(temp_file.name, self.path)

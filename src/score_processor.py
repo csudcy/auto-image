@@ -3,9 +3,11 @@
 
 import datetime
 import pathlib
+import statistics
 import time
 from typing import Optional
 
+import cv2
 from PIL import Image
 import open_clip
 import torch
@@ -53,6 +55,8 @@ class Scorer:
     self._model = None
     self._preprocess = None
     self._text_features = None
+
+    self._orb = None
 
   def process(self) -> None:
     print('Processing files...')
@@ -103,6 +107,11 @@ class Scorer:
     # Get the result for this path
     result = self.result_set.get_result(path)
 
+    # Find the centre (when necessary)
+    if not result.centre:
+      self._overall_processed += 1
+      result.centre = self._get_centre(path)
+
     # Process the scores (when necessary)
     if LABEL_SET.difference(result.scores):
       if self._model is None:
@@ -143,6 +152,24 @@ class Scorer:
       image_features /= image_features.norm(dim=-1, keepdim=True)
       text_probs = (100.0 * image_features @ self._text_features.T).softmax(dim=-1)
     return dict(zip(LABELS, text_probs.tolist()[0]))
+
+  def _get_centre(self, image_path: pathlib.Path) -> Optional[tuple[float, float]]:
+    # Load the image
+    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+
+    # Create an ORB object
+    if self._orb is None:
+      self._orb = cv2.ORB_create()
+
+    # Detect key points and compute descriptors
+    key_points = self._orb.detect(image)
+
+    if key_points:
+      c_x = int(statistics.mean(kp.pt[0] for kp in key_points))
+      c_y = int(statistics.mean(kp.pt[1] for kp in key_points))
+      return (c_x, c_y)
+    else:
+      return None
 
   def find_groups(
       self,
