@@ -16,7 +16,9 @@
       <tbody>
         {% for score, stats in score_stats.items() | sort(reverse=True) %}
           <tr>
-              <th>{{ score }}</th>
+              <th {% if score < minimum_score %}style="background-color: lightpink;"{% endif %}>
+                {{ score }}
+              </th>
               <td>{{ stats.count }}</td>
               <td>{{ stats.recent_count or '-' }}</td>
               <td>{{ stats.chosen_count or '-' }}</td>

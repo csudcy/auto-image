@@ -84,6 +84,7 @@ def generate(
       html_dir / 'counts.html',
       score_stats=score_stats,
       total_stats=total_stats,
+      minimum_score=minimum_score,
   )
 
   print('HTML done!')
