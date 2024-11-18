@@ -3,6 +3,7 @@ import shutil
 from typing import Optional
 
 from PIL import Image
+from PIL import ImageOps
 
 from src import result_manager
 
@@ -49,66 +50,13 @@ def process(
       result = chosen_results[filename]
       output_path = output_folder / filename
       if crop_size:
-        crop_width, crop_height = crop_size
-
-        # Load the image
         image = Image.open(result.path)
-
-        # Get the image size
-        image_width, image_height = image.size
-
-        # Find the size to extract
-        ratio = min((
-            image_width / crop_width,
-            image_height / crop_height,
-        ))
-        image_crop_width = int(crop_width * ratio)
-        image_crop_height = int(crop_height * ratio)
-
-        space_width = image_width - image_crop_width
-        space_height = image_height - image_crop_height
-        assert (space_width == 0 and space_height >= 0) or (space_width >= 0 and space_height == 0)
-
         if result.centre:
-          unbound_crop_left = result.centre[0] - int(image_crop_width / 2)
-          crop_left = max(min(unbound_crop_left, space_width), 0)
-          unbound_crop_top = result.centre[1] - int(image_crop_height / 2)
-          crop_top = max(min(unbound_crop_top, space_height), 0)
+          centre = (result.centre[0] / image.size[0], result.centre[1] / image.size[1])
         else:
-          crop_left = int(space_width / 2)
-          crop_top = int(space_height / 2)
-
-        from PIL import ImageDraw
-        draw = ImageDraw.Draw(image)
-        image_centre_x, image_centre_y = (int(image_width / 2), int(image_height / 2))
-        space_width_half = int(space_width / 2)
-        space_height_half = int(space_height / 2)
-        draw.circle(
-            (image_centre_x, image_centre_y),
-            radius=25,
-            fill=(255, 0, 0),
-            outline=(255, 255, 255),
-            width=5,
-        )
-        draw.rectangle(
-            (space_width_half, space_height_half, space_width_half+image_crop_width, space_height_half+image_crop_height),
-            outline=(255, 0, 0),
-            width=5,
-        )
-        if result.centre:
-          draw.circle(
-              result.centre,
-              radius=25,
-              fill=(0, 0, 255),
-              outline=(255, 255, 255),
-              width=5,
-          )
-          draw.rectangle(
-              (crop_left, crop_top, crop_left+image_crop_width, crop_top+image_crop_height),
-              outline=(0, 0, 255),
-              width=5,
-          )
-        image.save(output_path, quality=95)
+          centre = (0.5, 0.5)
+        cropped = ImageOps.fit(image, crop_size, centering=centre)
+        cropped.save(output_path, quality=95)
       else:
         shutil.copy(result.path, output_path)
       if index % 20 == 0:
