@@ -61,6 +61,23 @@ def main() -> None:
       action='store_true',
       help='Copy the best files into output directory (default: False)',
   )
+  parser.add_argument(
+      '--crop',
+      action='store_true',
+      help='If set, crop the output image around the average of keypoints',
+  )
+  parser.add_argument(
+      '--crop-width',
+      type=int,
+      default=1080,
+      help='The width to crop images to',
+  )
+  parser.add_argument(
+      '--crop-height',
+      type=int,
+      default=1920,
+      help='The height to crop images to',
+  )
   args = parser.parse_args()
 
   recent_delta = datetime.timedelta(days=args.recent_days)
@@ -73,7 +90,12 @@ def main() -> None:
   groups = scorer.find_groups()
   scorer.update_chosen(recent_delta, args.minimum_score, recent_count, old_count)
   html_generator.generate(result_set, groups, args.minimum_score)
-  organiser.process(result_set, args.output_dir, apply=args.apply)
+  organiser.process(
+      result_set,
+      args.output_dir,
+      apply=args.apply,
+      crop_size=(args.crop_width, args.crop_height) if args.crop else None,
+  )
 
 
 if __name__ == '__main__':
