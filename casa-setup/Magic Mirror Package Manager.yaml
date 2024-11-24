@@ -1,0 +1,58 @@
+name: practical_linda
+services:
+  main_app:
+    cpu_shares: 10
+    command: []
+    container_name: mmpm
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    image: karsten13/mmpm:latest
+    labels:
+      icon: https://www.freeiconspng.com/uploads/packages-icon-33.png
+    ports:
+      - target: 7890
+        published: "7890"
+        protocol: tcp
+      - target: 7891
+        published: "7891"
+        protocol: tcp
+      - target: 6789
+        published: "6789"
+        protocol: tcp
+      - target: 8907
+        published: "8907"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /DATA/mm/config
+        target: /home/node/MagicMirror/config
+      - type: bind
+        source: /DATA/mm/modules
+        target: /home/node/MagicMirror/modules
+      - type: bind
+        source: /DATA/mm/css
+        target: /home/node/MagicMirror/css
+      - type: bind
+        source: /DATA/mm/mmpm-config
+        target: /home/node/.config/mmpm
+    devices: []
+    cap_add: []
+    environment: []
+    network_mode: bridge
+    privileged: false
+    hostname: mmpm
+x-casaos:
+  author: self
+  category: self
+  hostname: ""
+  icon: https://www.freeiconspng.com/uploads/packages-icon-33.png
+  index: /
+  is_uncontrolled: false
+  port_map: "7890"
+  scheme: http
+  store_app_id: practical_linda
+  title:
+    custom: Magic Mirror Package Manager
