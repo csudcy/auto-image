@@ -203,6 +203,7 @@ class Scorer:
       minimum_score: float,
       top_recent_count: int,
       top_old_count: int,
+      exclude_dates: list[datetime.date],
   ) -> None:
     now = datetime.datetime.now()
     recent_minimum = now - recent_delta
@@ -219,6 +220,9 @@ class Scorer:
       result.is_recent = result.taken > recent_minimum
 
       if result.total < minimum_score:
+        continue
+
+      if result.taken.date() in exclude_dates:
         continue
 
       # Check this group hasn't already been chosen

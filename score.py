@@ -78,6 +78,13 @@ def main() -> None:
       default=1920,
       help='The height to crop images to',
   )
+  parser.add_argument(
+      '--exclude-date',
+      type=lambda s: datetime.datetime.strptime(s, '%Y%m%d').date(),
+      action='append',
+      dest='exclude_dates',
+      help='Any dates which should be excluded from being output (YYYYMMDD)',
+  )
   args = parser.parse_args()
 
   recent_delta = datetime.timedelta(days=args.recent_days)
@@ -88,7 +95,13 @@ def main() -> None:
   scorer = score_processor.Scorer(result_set, image_limit=args.max_images)
   scorer.process()
   groups = scorer.find_groups()
-  scorer.update_chosen(recent_delta, args.minimum_score, recent_count, old_count)
+  scorer.update_chosen(
+      recent_delta,
+      args.minimum_score,
+      recent_count,
+      old_count,
+      args.exclude_dates,
+  )
   html_generator.generate(result_set, groups, args.minimum_score)
   organiser.process(
       result_set,
