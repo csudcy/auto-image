@@ -15,6 +15,7 @@ import torch
 from src import result_manager
 
 EXTENSIONS = ('jpg', 'png')
+HIDE_SKIP_EXTENSIONS = ('mp4', 'html', 'gif', 'json')
 
 PHRASE_GOOD = ' '.join((
     'A photo thats interesting or fun, with a good subject.',
@@ -72,7 +73,8 @@ class Scorer:
 
       extension = path.suffix.lower().lstrip('.')
       if extension not in EXTENSIONS:
-        print(f'  Skipping non-image: {path.name}')
+        if extension not in HIDE_SKIP_EXTENSIONS:
+          print(f'  Skipping non-image: {path.name}')
         continue
 
       if time.perf_counter() >= next_time:
