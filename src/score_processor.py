@@ -239,4 +239,4 @@ class Scorer:
           old_chosen_count += 1
       if result.is_chosen and result.group_index is not None:
         used_groups.append(result.group_index)
-    print(f'Chose {recent_chosen_count} recent & {old_chosen_count} old')
+    print(f'Chose {recent_chosen_count} (/{top_recent_count}) recent & {old_chosen_count} (/{top_old_count}) old')
