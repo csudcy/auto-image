@@ -2,6 +2,7 @@ import argparse
 import datetime
 import pathlib
 
+from src import geocode_manager
 from src import html_generator
 from src import organiser
 from src import result_manager
@@ -92,7 +93,8 @@ def main() -> None:
   old_count = args.output_count - recent_count
 
   result_set = result_manager.ResultSet(args.input_dir)
-  scorer = score_processor.Scorer(result_set, image_limit=args.max_images)
+  geocoder = geocode_manager.GeoCoder(args.input_dir)
+  scorer = score_processor.Scorer(result_set, geocoder, image_limit=args.max_images)
   scorer.process()
   groups = scorer.find_groups()
   scorer.update_chosen(

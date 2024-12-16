@@ -12,6 +12,7 @@ from PIL import Image
 import open_clip
 import torch
 
+from src import geocode_manager
 from src import result_manager
 
 EXTENSIONS = ('jpg', 'png')
@@ -41,9 +42,11 @@ class Scorer:
   def __init__(
       self,
       result_set: result_manager.ResultSet,
+      geocoder: geocode_manager.GeoCoder,
       image_limit: Optional[int] = None,
   ):
     self.result_set = result_set
+    self.geocoder = geocoder
     self.image_limit = image_limit
 
     self._all_files = list(self.result_set.image_folder.rglob('*'))
@@ -80,12 +83,14 @@ class Scorer:
       if time.perf_counter() >= next_time:
         self._show_stats(index)
         self.result_set.save()
+        self.geocoder.save()
         next_time = time.perf_counter() + 5
-      
+
       self._update_score(path)
 
     self._show_stats(index)
     self.result_set.save()
+    self.geocoder.save()
 
     print('Processing done!')
 
@@ -123,6 +128,11 @@ class Scorer:
     if not result.centre:
       self._overall_processed += 1
       result.centre = self._get_centre(path)
+
+    # Find the location (when necessary)
+    if not result.location:
+      self._overall_processed += 1
+      result.location = self.geocoder.geocode_image(result.path)
 
     # Process the scores (when necessary)
     if LABEL_SET.difference(result.scores):

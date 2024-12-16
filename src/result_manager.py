@@ -21,6 +21,7 @@ class Result:
 
   path: Optional[pathlib.Path] = None
   centre: Optional[tuple[float, float]] = None
+  location: Optional[str] = None
   total: float = 0
   group_index: Optional[int] = None
   is_recent: bool = False
@@ -46,6 +47,8 @@ class Result:
     return Result(
         centre=data.get('centre'),
         file_id=data['file_id'],
+        # TODO: Load location once we've worked out what bit of an address to show
+        # location=data.get('location'),
         scores=data['scores'],
         taken=Result.parse_filename(file_id),
     )
@@ -54,6 +57,7 @@ class Result:
     return {
         'centre': self.centre,
         'file_id': self.file_id,
+        'location': self.location,
         'scores': self.scores,
     }
 
