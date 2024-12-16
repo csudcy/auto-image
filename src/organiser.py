@@ -25,8 +25,8 @@ def process(
 
   # Get all chosen files
   chosen_results = {
-      result.path.name: result
-      for result in result_set.results.values()
+      file_id: result
+      for file_id, result in result_set.results.items()
       if result.is_chosen
   }
   chosen_file_set = set(chosen_results.keys())

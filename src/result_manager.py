@@ -17,11 +17,11 @@ CENTRE_KEY = '_centre'
 
 @dataclass
 class Result:
-  path: pathlib.Path
   file_id: str
   scores: dict[str, dict[str, float]]
   taken: datetime.datetime
 
+  path: Optional[pathlib.Path] = None
   centre: Optional[tuple[float, float]] = None
   total: float = 0
   group_index: Optional[int] = None
@@ -39,8 +39,10 @@ class ResultSet:
       with self.path.open('r') as f:
         scores = json.load(f)
       for file_id, scores in scores.items():
-        path = self.image_folder / file_id
-        result = self.get_result(path)
+        if '/' in file_id:
+          # If this is a path (rather than just a filename), update to use only the filename
+          file_id = file_id.split('/')[-1]
+        result = self.get_result(file_id)
         if CENTRE_KEY in scores:
           result.centre = scores.pop(CENTRE_KEY)
         result.scores = scores
@@ -54,8 +56,7 @@ class ResultSet:
         json.dump(scores, temp_file, indent=2)
     os.replace(temp_file.name, self.path)
   
-  def get_result(self, path: pathlib.Path) -> Result:
-    file_id = str(path.relative_to(self.image_folder))
+  def get_result(self, file_id: str) -> Result:
     if file_id not in self.results:
       # Parse the datetime from the filename
       match = re.match(DATETIME_RE, file_id)
@@ -70,7 +71,6 @@ class ResultSet:
         taken = datetime.datetime.min
 
       self.results[file_id] = Result(
-          path=path,
           file_id=file_id,
           scores={},
           taken=taken,

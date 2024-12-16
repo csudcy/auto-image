@@ -107,7 +107,17 @@ class Scorer:
 
   def _update_score(self, path: pathlib.Path) -> None:
     # Get the result for this path
-    result = self.result_set.get_result(path)
+    result = self.result_set.get_result(path.name)
+
+    if result.path:
+      print('\n'.join((
+          f'  Duplicate file: {path.name}',
+          f'    -> {result.path}',
+          f'    -> {path}',
+      )))
+      return
+    else:
+      result.path = path
 
     # Find the centre (when necessary)
     if not result.centre:
@@ -219,14 +229,16 @@ class Scorer:
     for result in results_list:
       result.is_recent = result.taken > recent_minimum
 
-      if result.total < minimum_score:
-        continue
-
-      if result.taken.date() in exclude_dates:
-        continue
-
-      # Check this group hasn't already been chosen
-      if result.group_index in used_groups:
+      if any((
+          # This image doesn't exist
+          result.path is None,
+          # This image doesn't score enough
+          result.total < minimum_score,
+          # This date is excluded
+          result.taken.date() in exclude_dates,
+          # This group has already been chosen already
+          result.group_index in used_groups,
+      )):
         continue
  
       if result.is_recent:

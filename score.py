@@ -100,7 +100,7 @@ def main() -> None:
       args.minimum_score,
       recent_count,
       old_count,
-      args.exclude_dates,
+      args.exclude_dates or [],
   )
   html_generator.generate(result_set, groups, args.minimum_score)
   organiser.process(
