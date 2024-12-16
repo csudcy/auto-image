@@ -13,8 +13,6 @@ from typing import Optional
 DATETIME_RE = r'.*(\d{4}-?\d{2}-?\d{2}[ _]\d{2}.?\d{2}.?\d{2})'
 DATETIME_FORMAT = '%Y%m%d %H%M%S'
 
-CENTRE_KEY = '_centre'
-
 @dataclass
 class Result:
   file_id: str
@@ -28,6 +26,37 @@ class Result:
   is_recent: bool = False
   is_chosen: bool = False
 
+  @classmethod
+  def parse_filename(cls, file_id: str) -> datetime.datetime:
+    # Parse the datetime from the filename
+    match = re.match(DATETIME_RE, file_id)
+    if match:
+      dt = match.group(1)
+      dt = dt.replace('-', '')
+      dt = dt.replace('.', '')
+      dt = dt.replace('_', ' ')
+      return datetime.datetime.strptime(dt, DATETIME_FORMAT)
+    else:
+      print(f'  Unable to parse date: {file_id}')
+      return datetime.datetime.min
+
+  @classmethod
+  def from_dict(cls, data: dict) -> 'Result':
+    file_id = data['file_id']
+    return Result(
+        centre=data.get('centre'),
+        file_id=data['file_id'],
+        scores=data['scores'],
+        taken=Result.parse_filename(file_id),
+    )
+
+  def to_dict(self) -> dict:
+    return {
+        'centre': self.centre,
+        'file_id': self.file_id,
+        'scores': self.scores,
+    }
+
 
 class ResultSet:
 
@@ -37,42 +66,38 @@ class ResultSet:
     self.results: dict[Result] = {}
     if self.path.exists():
       with self.path.open('r') as f:
-        scores = json.load(f)
-      for file_id, scores in scores.items():
-        if '/' in file_id:
-          # If this is a path (rather than just a filename), update to use only the filename
-          file_id = file_id.split('/')[-1]
-        result = self.get_result(file_id)
-        if CENTRE_KEY in scores:
-          result.centre = scores.pop(CENTRE_KEY)
-        result.scores = scores
+        data = json.load(f)
+
+      # Convert old structure
+      if isinstance(data, dict):
+        data_list = []
+        for file_id, item in data.items():
+          if '/' in file_id:
+            # If this is a path (rather than just a filename), update to use only the filename
+            file_id = file_id.split('/')[-1]
+          centre = item.pop('_centre')
+          data_list.append({
+              'centre': centre,
+              'file_id': file_id,
+              'scores': item,
+          })
+        data = data_list
+      
+      for item in data:
+        result = Result.from_dict(item)
+        self.results[result.file_id] = result
 
   def save(self) -> None:
-    scores = {}
-    for file_id, result in self.results.items():
-      scores[file_id] = dict(**result.scores)
-      scores[file_id][CENTRE_KEY] = result.centre
+    data = [result.to_dict() for result in self.results.values()]
     with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
-        json.dump(scores, temp_file, indent=2)
+        json.dump(data, temp_file, indent=2)
     os.replace(temp_file.name, self.path)
   
   def get_result(self, file_id: str) -> Result:
     if file_id not in self.results:
-      # Parse the datetime from the filename
-      match = re.match(DATETIME_RE, file_id)
-      if match:
-        dt = match.group(1)
-        dt = dt.replace('-', '')
-        dt = dt.replace('.', '')
-        dt = dt.replace('_', ' ')
-        taken = datetime.datetime.strptime(dt, DATETIME_FORMAT)
-      else:
-        print(f'  Unable to parse date: {file_id}')
-        taken = datetime.datetime.min
-
       self.results[file_id] = Result(
           file_id=file_id,
           scores={},
-          taken=taken,
+          taken=Result.parse_filename(file_id),
       )
     return self.results[file_id]
