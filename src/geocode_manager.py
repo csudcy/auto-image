@@ -57,6 +57,9 @@ https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=51.6369323728&lon=
 }
 """
 
+KEY_PREFERENCE_LOCAL = ('suburb', 'village', 'town', 'city_district', 'city')
+KEY_PREFERENCE_GLOBAL = ('village', 'town', 'city_district', 'city')
+
 
 @dataclass
 class GeoCodeResult:
@@ -66,8 +69,26 @@ class GeoCodeResult:
 
   @property
   def name(self) -> Optional[str]:
-    # TODO: Work out what to display
-    return self.data.get('name')
+    if 'address' not in self.data:
+      print('\n'.join((
+          f'Missing address:',
+          f'({self.lat}, {self.lon})',
+          f'{self.data}',
+      )))
+      return None
+
+    address = self.data['address']
+    cc = address['country_code']
+    if cc == 'gb':
+      key_preference = KEY_PREFERENCE_LOCAL
+    else:
+      key_preference = KEY_PREFERENCE_GLOBAL
+    for key in key_preference:
+      if name := address.get(key):
+        name = name.replace('London Borough of ', '')
+        name = name.replace('The Cedars Estate', 'Mill End')
+        return name
+    return self.data.get('display_name')
 
 
 def _decode_coords(coords: tuple[Any, Any, Any], ref: str) -> float:
@@ -81,8 +102,9 @@ def _decode_coords(coords: tuple[Any, Any, Any], ref: str) -> float:
 
 class GeoCoder:
 
-  def __init__(self, image_folder: pathlib.Path):
+  def __init__(self, image_folder: pathlib.Path, precision: int):
     self.image_folder = image_folder
+    self.precision = precision
     self.path = image_folder / '_auto_image_geocoding.json'
     self.next_request = datetime.datetime.now()
     self.results: dict[GeoCodeResult] = {}
@@ -99,7 +121,7 @@ class GeoCoder:
         for result in self.results.values()
     ]
     with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
-        json.dump(data, temp_file, indent=2)
+        json.dump(data, temp_file, indent=2, ensure_ascii=False)
     os.replace(temp_file.name, self.path)
 
   def geocode_image(self, image_file: pathlib.Path) -> Optional[str]:
@@ -113,12 +135,6 @@ class GeoCoder:
     gpsinfo = exifdata.get_ifd(ExifTags.IFD.GPSInfo)
     if not gpsinfo or len(gpsinfo) < 6:
       return None
-    
-    # if len(gpsinfo) < 6:
-    #   print('\n' * 5)
-    #   print(gpsinfo)
-    #   # print(f'{lat}, {lon}')
-    #   import pdb; pdb.set_trace()
 
     # Decode the lat/lon
     lat = _decode_coords(gpsinfo[2], gpsinfo[1])
@@ -128,21 +144,24 @@ class GeoCoder:
     return self.get_result(lat, lon).name
 
   def get_result(self, lat: float, lon: float) -> GeoCodeResult:
-    key = (lat, lon)
+    lat_dp = round(lat, self.precision)
+    lon_dp = round(lon, self.precision)
+
+    key = (lat_dp, lon_dp)
     if key not in self.results:
       # Make sure we're not making too many requests
       wait_time = (self.next_request - datetime.datetime.now()).total_seconds()
       if wait_time > 0:
         time.sleep(wait_time)
 
-      url = API.format(lat=lat, lon=lon)
+      url = API.format(lat=lat_dp, lon=lon_dp)
       response = requests.get(url, headers=HEADERS)
       response.raise_for_status()
       data = response.json()
 
       self.results[key] = GeoCodeResult(
-          lat=lat,
-          lon=lon,
+          lat=lat_dp,
+          lon=lon_dp,
           data=data,
       )
     return self.results[key]

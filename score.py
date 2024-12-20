@@ -86,6 +86,13 @@ def main() -> None:
       dest='exclude_dates',
       help='Any dates which should be excluded from being output (YYYYMMDD)',
   )
+  parser.add_argument(
+      '--latlng-precision',
+      type=int,
+      default=4,
+      help='Precision to use for lat-lng reverse geocoding (4dp ~= 10m accuracy)',
+  )
+
   args = parser.parse_args()
 
   recent_delta = datetime.timedelta(days=args.recent_days)
@@ -93,7 +100,7 @@ def main() -> None:
   old_count = args.output_count - recent_count
 
   result_set = result_manager.ResultSet(args.input_dir)
-  geocoder = geocode_manager.GeoCoder(args.input_dir)
+  geocoder = geocode_manager.GeoCoder(args.input_dir, args.latlng_precision)
   scorer = score_processor.Scorer(result_set, geocoder, image_limit=args.max_images)
   scorer.process()
   groups = scorer.find_groups()

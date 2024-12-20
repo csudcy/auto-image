@@ -94,7 +94,7 @@ class ResultSet:
   def save(self) -> None:
     data = [result.to_dict() for result in self.results.values()]
     with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
-        json.dump(data, temp_file, indent=2)
+        json.dump(data, temp_file, indent=2, ensure_ascii=False)
     os.replace(temp_file.name, self.path)
   
   def get_result(self, file_id: str) -> Result:
