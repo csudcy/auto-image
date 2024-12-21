@@ -59,8 +59,8 @@ https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=51.6369323728&lon=
 }
 """
 
-KEY_PREFERENCE_LOCAL = ('suburb', 'village', 'town', 'city_district', 'city')
-KEY_PREFERENCE_GLOBAL = ('village', 'town', 'city_district', 'city')
+KEY_PREFERENCE_LOCAL = ('suburb', 'village', 'town', 'city_district', 'city', 'state')
+KEY_PREFERENCE_GLOBAL = ('village', 'town', 'city_district', 'city', 'state', 'country')
 
 
 @dataclass
@@ -85,12 +85,26 @@ class GeoCodeResult:
       key_preference = KEY_PREFERENCE_LOCAL
     else:
       key_preference = KEY_PREFERENCE_GLOBAL
+    values = []
     for key in key_preference:
-      if name := address.get(key):
-        name = name.replace('London Borough of ', '')
-        name = name.replace('The Cedars Estate', 'Mill End')
-        return name
-    return self.data.get('display_name')
+      if key in address:
+        # Customise some specific names
+        value = address[key].replace('London Borough of ', '').replace('The Cedars Estate', 'Mill End')
+        # If there's multiple versions of a name, use the last version
+        if '/' in value:
+          value = (value.split('/')[-1]).strip()
+        # Avoid duplicate values
+        if value not in values:
+          values.append(value)
+    if len(values) >= 2:
+      # If there's 2 or more, use the first & last values
+      return f'{values[0]}, {values[-1]}'
+    elif values:
+      # If there's 1 value, use it
+      return values[0]
+    else:
+      # Otherwise, fallback to display name
+      return self.data.get('display_name')
 
 
 def _decode_coords(coords: tuple[Any, Any, Any], ref: str) -> float:
