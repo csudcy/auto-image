@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+import dataclasses
 import datetime
 import json
 import os
@@ -13,7 +13,13 @@ from typing import Optional
 DATETIME_RE = r'.*(\d{4}-?\d{2}-?\d{2}[ _]\d{2}.?\d{2}.?\d{2})'
 DATETIME_FORMAT = '%Y%m%d %H%M%S'
 
-@dataclass
+@dataclasses.dataclass
+class LatLon:
+  lat: float
+  lon: float
+
+
+@dataclasses.dataclass
 class Result:
   file_id: str
   scores: dict[str, dict[str, float]]
@@ -21,6 +27,7 @@ class Result:
 
   path: Optional[pathlib.Path] = None
   centre: Optional[tuple[float, float]] = None
+  lat_lon: Optional[LatLon] = None
   location: Optional[str] = None
   total: float = 0
   group_index: Optional[int] = None
@@ -44,19 +51,28 @@ class Result:
   @classmethod
   def from_dict(cls, data: dict) -> 'Result':
     file_id = data['file_id']
+    if lat_lon_data := data.get('lat_lon'):
+      lat_lon = LatLon(**lat_lon_data)
+    else:
+      lat_lon = None
     return Result(
         centre=data.get('centre'),
         file_id=data['file_id'],
-        # TODO: Load location once we've worked out what bit of an address to show
-        # location=data.get('location'),
+        lat_lon=lat_lon,
         scores=data['scores'],
         taken=Result.parse_filename(file_id),
     )
 
   def to_dict(self) -> dict:
+    if self.lat_lon:
+      lat_lon = dataclasses.asdict(self.lat_lon)
+    else:
+      lat_lon = None
     return {
         'centre': self.centre,
         'file_id': self.file_id,
+        'lat_lon': lat_lon,
+        # Only save location name so we can see it in the JSON
         'location': self.location,
         'scores': self.scores,
     }

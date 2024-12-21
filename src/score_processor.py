@@ -130,9 +130,10 @@ class Scorer:
       result.centre = self._get_centre(path)
 
     # Find the location (when necessary)
-    if not result.location:
-      self._overall_processed += 1
-      result.location = self.geocoder.geocode_image(result.path)
+    if not result.lat_lon:
+      result.lat_lon = self.geocoder.extract_lat_lon(result.path)
+    if result.lat_lon:
+      result.location = self.geocoder.get_name(result.lat_lon)
 
     # Process the scores (when necessary)
     if LABEL_SET.difference(result.scores):

@@ -13,6 +13,8 @@ from PIL import Image
 from PIL import ExifTags
 import requests
 
+from src import result_manager
+
 USER_AGENT = 'AutoImage; https://github.com/csudcy/auto-image'
 HEADERS = {'User-Agent': USER_AGENT}
 API = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat={lat}&lon={lon}'
@@ -124,9 +126,9 @@ class GeoCoder:
         json.dump(data, temp_file, indent=2, ensure_ascii=False)
     os.replace(temp_file.name, self.path)
 
-  def geocode_image(self, image_file: pathlib.Path) -> Optional[str]:
+  def extract_lat_lon(self, path: pathlib.Path) -> Optional[result_manager.LatLon]:
     # Extract the tags
-    image = Image.open(image_file)
+    image = Image.open(path)
     exifdata = image.getexif()
     if not exifdata:
       return None
@@ -140,12 +142,12 @@ class GeoCoder:
     lat = _decode_coords(gpsinfo[2], gpsinfo[1])
     lon = _decode_coords(gpsinfo[4], gpsinfo[3])
 
-    # Return the geocoded name
-    return self.get_result(lat, lon).name
+    # Return the lat-lon
+    return result_manager.LatLon(lat=lat, lon=lon)
 
-  def get_result(self, lat: float, lon: float) -> GeoCodeResult:
-    lat_dp = round(lat, self.precision)
-    lon_dp = round(lon, self.precision)
+  def get_name(self, lat_lon: result_manager.LatLon) -> GeoCodeResult:
+    lat_dp = round(lat_lon.lat, self.precision)
+    lon_dp = round(lat_lon.lon, self.precision)
 
     key = (lat_dp, lon_dp)
     if key not in self.results:
@@ -164,4 +166,4 @@ class GeoCoder:
           lon=lon_dp,
           data=data,
       )
-    return self.results[key]
+    return self.results[key].name
