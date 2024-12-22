@@ -23,7 +23,7 @@ class LatLon:
 class Result:
   file_id: str
   scores: dict[str, dict[str, float]]
-  taken: datetime.datetime
+  taken: Optional[datetime.datetime]
 
   path: Optional[pathlib.Path] = None
   centre: Optional[tuple[float, float]] = None
@@ -36,7 +36,7 @@ class Result:
   is_chosen: bool = False
 
   @classmethod
-  def parse_filename(cls, file_id: str) -> datetime.datetime:
+  def parse_filename(cls, file_id: str) -> Optional[datetime.datetime]:
     # Parse the datetime from the filename
     match = re.match(DATETIME_RE, file_id)
     if match:
@@ -47,7 +47,7 @@ class Result:
       return datetime.datetime.strptime(dt, DATETIME_FORMAT)
     else:
       print(f'  Unable to parse date: {file_id}')
-      return datetime.datetime.min
+      return None
 
   @classmethod
   def from_dict(cls, data: dict) -> 'Result':

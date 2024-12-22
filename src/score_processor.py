@@ -74,6 +74,8 @@ class Scorer:
         # Skip directories
         continue
 
+      if path.name == '.DS_Store':
+        continue
       extension = path.suffix.lower().lstrip('.')
       if extension not in EXTENSIONS:
         if extension not in HIDE_SKIP_EXTENSIONS:
@@ -202,19 +204,20 @@ class Scorer:
     print('Grouping images...')
     results_list = sorted(
         self.result_set.results.values(),
-        key=lambda result: result.taken,
+        key=lambda result: result.taken or datetime.datetime.min,
     )
     groups = []
     previous_result: result_manager.Result = results_list[0]
     result: result_manager.Result
     for result in results_list[1:]:
-      delta = result.taken - previous_result.taken
-      if delta <= maximum_delta:
-        if previous_result.group_index is None:
-          groups.append([previous_result])
-          previous_result.group_index = len(groups)
-        groups[-1].append(result)
-        result.group_index = previous_result.group_index
+      if result.taken and previous_result.taken:
+        delta = result.taken - previous_result.taken
+        if delta <= maximum_delta:
+          if previous_result.group_index is None:
+            groups.append([previous_result])
+            previous_result.group_index = len(groups)
+          groups[-1].append(result)
+          result.group_index = previous_result.group_index
       previous_result = result
     print(f'Found {len(groups)} group(s)!')
     return groups
@@ -239,7 +242,10 @@ class Scorer:
     recent_chosen_count = 0
     old_chosen_count = 0
     for result in results_list:
-      result.is_recent = result.taken > recent_minimum
+      if result.taken:
+        result.is_recent = result.taken > recent_minimum
+      else:
+        result.is_recent = False
 
       if any((
           # This image doesn't exist
@@ -247,7 +253,7 @@ class Scorer:
           # This image doesn't score enough
           result.total < minimum_score,
           # This date is excluded
-          result.taken.date() in exclude_dates,
+          result.taken and result.taken.date() in exclude_dates,
           # This group has already been chosen already
           result.group_index in used_groups,
       )):
