@@ -22,6 +22,7 @@ def process(
     font_colour: tuple[int, int, int] = (255, 255, 255),
     font_outline_width: int = 3,
     font_outline_colour: tuple[int, int, int] = (0, 0, 0),
+    taken_format: str = '%B, %Y',
 ) -> None:
   font = ImageFont.truetype(font_filename, font_size)
   outline_offsets = [
@@ -83,8 +84,14 @@ def process(
           draw.text((x, y), text, font_colour, font=font)
 
         # Add location
+        text_top = crop_size[1] + text_offset_y
         if result.location:
-          _draw_text(text_offset_x, crop_size[1] + text_offset_y, result.location)
+          _draw_text(text_offset_x, text_top, result.location)
+        if result.taken:
+          taken_text = result.taken.strftime(taken_format)
+          taken_size = int(draw.textlength(taken_text, font=font))
+          taken_x = crop_size[0] - taken_size - 2 * text_offset_x
+          _draw_text(taken_x, text_top, taken_text)
 
         cropped.save(output_path, quality=95)
       else:
