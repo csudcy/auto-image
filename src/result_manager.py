@@ -7,6 +7,7 @@ import re
 import tempfile
 from typing import Optional
 
+import cachetools
 from PIL import Image
 
 # 2024-10-21 10.52.09-1.jpg
@@ -14,6 +15,8 @@ from PIL import Image
 # IMG_20240608_141605_1.jpg
 DATETIME_RE = r'.*(\d{4}-?\d{2}-?\d{2}[ _]\d{2}.?\d{2}.?\d{2})'
 DATETIME_FORMAT = '%Y%m%d %H%M%S'
+
+IMAGE_CACHE = cachetools.LRUCache(maxsize=16)
 
 @dataclasses.dataclass
 class LatLon:
@@ -39,16 +42,12 @@ class Result:
   is_recent: bool = False
   is_chosen: bool = False
 
-  _image: Optional[Image.Image] = None
-
   @property
   def image(self) -> Image.Image:
-    if not self._image:
-      if self.path:
-        self._image = Image.open(self.path)
-      else:
-        raise Exception(f'Can\'t get image when path is not set! {self.file_id}')
-    return self._image
+    if self.path:
+      return load_image(self.path)
+    else:
+      raise Exception(f'Can\'t get image when path is not set! {self.file_id}')
 
   @classmethod
   def parse_filename(cls, file_id: str) -> Optional[datetime.datetime]:
@@ -100,6 +99,11 @@ class Result:
         'ocr_text': self.ocr_text,
         'scores': self.scores,
     }
+
+
+@cachetools.cached(IMAGE_CACHE)
+def load_image(path: pathlib.Path) -> Image.Image:
+  return Image.open(path)
 
 
 class ResultSet:

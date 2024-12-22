@@ -17,3 +17,4 @@ numpy = "<2" # Looks like open clip uses numpy 1 (which outputs an error about n
 opencv-python = ">=4.10.0.84"
 requests = ">=2.32.3"
 tesserocr = ">=2.7.1"
+cachetools = ">=5.5.0"
