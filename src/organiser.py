@@ -73,15 +73,19 @@ def process(
         else:
           centre = (0.5, 0.5)
         cropped = ImageOps.fit(image, crop_size, centering=centre)
+
+        draw = ImageDraw.Draw(cropped)
+        def _draw_text(x: int, y: int, text: str) -> None:
+          # Outline
+          for dx, dy in outline_offsets:
+            draw.text((x + dx, y + dy), text, font_outline_colour, font=font)
+          # Text
+          draw.text((x, y), text, font_colour, font=font)
+
         # Add location
         if result.location:
-          draw = ImageDraw.Draw(cropped)
-          text_y = crop_size[1] + text_offset_y
-          # Outline
-          for x, y in outline_offsets:
-            draw.text((text_offset_x + x, text_y + y), result.location, font_outline_colour, font=font)
-          # Text
-          draw.text((text_offset_x, text_y), result.location, font_colour, font=font)
+          _draw_text(text_offset_x, crop_size[1] + text_offset_y, result.location)
+
         cropped.save(output_path, quality=95)
       else:
         shutil.copy(result.path, output_path)

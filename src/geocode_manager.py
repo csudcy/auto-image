@@ -93,6 +93,8 @@ class GeoCodeResult:
         # If there's multiple versions of a name, use the last version
         if '/' in value:
           value = (value.split('/')[-1]).strip()
+        if ' - ' in value:
+          value = (value.split(' - ')[-1]).strip()
         # Avoid duplicate values
         if value not in values:
           values.append(value)
