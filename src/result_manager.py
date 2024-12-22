@@ -28,6 +28,8 @@ class Result:
   taken: Optional[datetime.datetime]
 
   path: Optional[pathlib.Path] = None
+  ocr_coverage: Optional[float] = None
+  ocr_text: Optional[str] = None
   centre: Optional[tuple[float, float]] = None
   lat_lon_extracted: bool = False
   lat_lon: Optional[LatLon] = None
@@ -76,6 +78,8 @@ class Result:
         file_id=data['file_id'],
         lat_lon_extracted=lat_lon_extracted,
         lat_lon=lat_lon,
+        ocr_coverage=data.get('ocr_coverage'),
+        ocr_text=data.get('ocr_text'),
         scores=data['scores'],
         taken=Result.parse_filename(file_id),
     )
@@ -92,6 +96,8 @@ class Result:
         'lat_lon': lat_lon,
         # Only save location name so we can see it in the JSON
         'location': self.location,
+        'ocr_coverage': self.ocr_coverage,
+        'ocr_text': self.ocr_text,
         'scores': self.scores,
     }
 

@@ -92,6 +92,12 @@ def main() -> None:
       default=4,
       help='Precision to use for lat-lng reverse geocoding (4dp ~= 10m accuracy)',
   )
+  parser.add_argument(
+      '--tesser-path',
+      type=str,
+      default='/usr/local/Cellar/tesseract/5.5.0/share/tessdata',
+      help='Path to tesserdata folder of installed tesseract binary',
+  )
 
   args = parser.parse_args()
 
@@ -101,7 +107,7 @@ def main() -> None:
 
   result_set = result_manager.ResultSet(args.input_dir)
   geocoder = geocode_manager.GeoCoder(args.input_dir, args.latlng_precision)
-  scorer = score_processor.Scorer(result_set, geocoder, image_limit=args.max_images)
+  scorer = score_processor.Scorer(result_set, geocoder, image_limit=args.max_images, tesser_path=args.tesser_path)
   scorer.process()
   groups = scorer.find_groups()
   scorer.update_chosen(

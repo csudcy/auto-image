@@ -10,6 +10,7 @@ from typing import Optional
 import cv2
 from PIL import Image
 import open_clip
+import tesserocr
 import torch
 
 from src import geocode_manager
@@ -44,10 +45,12 @@ class Scorer:
       result_set: result_manager.ResultSet,
       geocoder: geocode_manager.GeoCoder,
       image_limit: Optional[int] = None,
+      tesser_path: Optional[str] = None,
   ):
     self.result_set = result_set
     self.geocoder = geocoder
     self.image_limit = image_limit
+    self.tesser_path = tesser_path
 
     self._all_files = list(self.result_set.image_folder.rglob('*'))
     self._file_count = len(self._all_files)
@@ -65,6 +68,12 @@ class Scorer:
   def process(self) -> None:
     print('Processing files...')
     next_time = self._overall_time
+
+    if self.tesser_path:
+      tesser_api = tesserocr.PyTessBaseAPI(path=self.tesser_path)
+    else:
+      tesser_api = None
+
     for index, path in enumerate(self._all_files):
       if self.image_limit and index >= self.image_limit:
         print('Hit limit; stopping...')
@@ -88,7 +97,10 @@ class Scorer:
         self.geocoder.save()
         next_time = time.perf_counter() + 5
 
-      self._update_score(path)
+      self._update_score(path, tesser_api)
+
+    if tesser_api:
+      tesser_api.End()
 
     self._show_stats(index)
     self.result_set.save()
@@ -112,7 +124,7 @@ class Scorer:
     self._stats_last_processed = self._overall_processed
     self._stats_last_time = new_time
 
-  def _update_score(self, path: pathlib.Path) -> None:
+  def _update_score(self, path: pathlib.Path, tesser_api: Optional[tesserocr.PyTessBaseAPI]) -> None:
     # Get the result for this path
     result = self.result_set.get_result(path.name)
 
@@ -137,6 +149,18 @@ class Scorer:
       result.lat_lon_extracted = True
     if result.lat_lon:
       result.location = self.geocoder.get_name(result.lat_lon)
+
+    if tesser_api and result.ocr_text is None:
+      tesser_api.SetImage(result.image)
+      result.ocr_text = tesser_api.GetUTF8Text()
+      if result.ocr_text:
+        # boxes = tesser_api.GetComponentImages(tesserocr.RIL.TEXTLINE, True)
+        boxes = tesser_api.GetComponentImages(tesserocr.RIL.BLOCK, True)
+        text_pixels = 0
+        for _, box, _, _ in boxes:
+          text_pixels += box['w'] * box['h']
+        image_pixels = result.image.size[0] * result.image.size[1]
+        result.ocr_coverage = text_pixels / image_pixels
 
     # Process the scores (when necessary)
     if LABEL_SET.difference(result.scores):
