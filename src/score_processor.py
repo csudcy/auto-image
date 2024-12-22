@@ -123,12 +123,12 @@ class Scorer:
           f'    -> {path}',
       )))
       return
-    else:
-      result.path = path
+
+    self._overall_processed += 1
+    result.path = path
 
     # Find the centre (when necessary)
     if not result.centre:
-      self._overall_processed += 1
       result.centre = self._get_centre(path)
 
     # Find the location (when necessary)
@@ -142,7 +142,6 @@ class Scorer:
     if LABEL_SET.difference(result.scores):
       if self._model is None:
         self._init_model()
-      self._overall_processed += 1
       try:
         result.scores = self._score(result.image)
       except Exception as ex:
