@@ -142,9 +142,8 @@ class GeoCoder:
         json.dump(data, temp_file, indent=2, ensure_ascii=False)
     os.replace(temp_file.name, self.path)
 
-  def extract_lat_lon(self, path: pathlib.Path) -> Optional[result_manager.LatLon]:
+  def extract_lat_lon(self, image: Image.Image) -> Optional[result_manager.LatLon]:
     # Extract the tags
-    image = Image.open(path)
     exifdata = image.getexif()
     if not exifdata:
       return None

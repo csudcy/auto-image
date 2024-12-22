@@ -2,7 +2,6 @@ import pathlib
 import shutil
 from typing import Optional
 
-from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 from PIL import ImageOps
@@ -68,12 +67,12 @@ def process(
       result = chosen_results[filename]
       output_path = output_folder / filename
       if crop_size:
-        image = Image.open(result.path)
+        image_width, image_height = result.image.size
         if result.centre:
-          centre = (result.centre[0] / image.size[0], result.centre[1] / image.size[1])
+          centre = (result.centre[0] / image_width, result.centre[1] / image_height)
         else:
           centre = (0.5, 0.5)
-        cropped = ImageOps.fit(image, crop_size, centering=centre)
+        cropped = ImageOps.fit(result.image, crop_size, centering=centre)
 
         draw = ImageDraw.Draw(cropped)
         def _draw_text(x: int, y: int, text: str) -> None:

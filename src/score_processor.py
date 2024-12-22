@@ -133,7 +133,7 @@ class Scorer:
 
     # Find the location (when necessary)
     if not result.lat_lon_extracted:
-      result.lat_lon = self.geocoder.extract_lat_lon(result.path)
+      result.lat_lon = self.geocoder.extract_lat_lon(result.image)
       result.lat_lon_extracted = True
     if result.lat_lon:
       result.location = self.geocoder.get_name(result.lat_lon)
@@ -144,7 +144,7 @@ class Scorer:
         self._init_model()
       self._overall_processed += 1
       try:
-        result.scores = self._score(path)
+        result.scores = self._score(result.image)
       except Exception as ex:
         print(f'  Error scoring {path.name} - {ex}')
         return
@@ -169,12 +169,12 @@ class Scorer:
     self._preprocess = preprocess
     self._text_features = text_features
   
-  def _score(self, image_path: pathlib.Path) -> dict[str, float]:
+  def _score(self, image: Image.Image) -> dict[str, float]:
     # This is supposed to make things faster/more efficient but doesn't seem to do much;
     # however, it does stop memory going crazy & getting the process killed after some time.
     with torch.no_grad(), torch.cuda.amp.autocast():
-      image = self._preprocess(Image.open(image_path)).unsqueeze(0)
-      image_features = self._model.encode_image(image)
+      processed_image = self._preprocess(image).unsqueeze(0)
+      image_features = self._model.encode_image(processed_image)
       image_features /= image_features.norm(dim=-1, keepdim=True)
       text_probs = (100.0 * image_features @ self._text_features.T).softmax(dim=-1)
     return dict(zip(LABELS, text_probs.tolist()[0]))

@@ -7,6 +7,8 @@ import re
 import tempfile
 from typing import Optional
 
+from PIL import Image
+
 # 2024-10-21 10.52.09-1.jpg
 # skin-2018-07-18 12.59.08-2.jpg
 # IMG_20240608_141605_1.jpg
@@ -34,6 +36,17 @@ class Result:
   group_index: Optional[int] = None
   is_recent: bool = False
   is_chosen: bool = False
+
+  _image: Optional[Image.Image] = None
+
+  @property
+  def image(self) -> Image.Image:
+    if not self._image:
+      if self.path:
+        self._image = Image.open(self.path)
+      else:
+        raise Exception(f'Can\'t get image when path is not set! {self.file_id}')
+    return self._image
 
   @classmethod
   def parse_filename(cls, file_id: str) -> Optional[datetime.datetime]:
