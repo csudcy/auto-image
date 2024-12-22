@@ -27,6 +27,7 @@ class Result:
 
   path: Optional[pathlib.Path] = None
   centre: Optional[tuple[float, float]] = None
+  lat_lon_extracted: bool = False
   lat_lon: Optional[LatLon] = None
   location: Optional[str] = None
   total: float = 0
@@ -53,11 +54,14 @@ class Result:
     file_id = data['file_id']
     if lat_lon_data := data.get('lat_lon'):
       lat_lon = LatLon(**lat_lon_data)
+      lat_lon_extracted = True
     else:
       lat_lon = None
+      lat_lon_extracted = data.get('lat_lon_extracted') or False
     return Result(
         centre=data.get('centre'),
         file_id=data['file_id'],
+        lat_lon_extracted=lat_lon_extracted,
         lat_lon=lat_lon,
         scores=data['scores'],
         taken=Result.parse_filename(file_id),
@@ -71,6 +75,7 @@ class Result:
     return {
         'centre': self.centre,
         'file_id': self.file_id,
+        'lat_lon_extracted': self.lat_lon_extracted,
         'lat_lon': lat_lon,
         # Only save location name so we can see it in the JSON
         'location': self.location,

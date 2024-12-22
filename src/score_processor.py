@@ -130,8 +130,9 @@ class Scorer:
       result.centre = self._get_centre(path)
 
     # Find the location (when necessary)
-    if not result.lat_lon:
+    if not result.lat_lon_extracted:
       result.lat_lon = self.geocoder.extract_lat_lon(result.path)
+      result.lat_lon_extracted = True
     if result.lat_lon:
       result.location = self.geocoder.get_name(result.lat_lon)
 
