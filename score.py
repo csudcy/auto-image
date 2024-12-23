@@ -98,6 +98,18 @@ def main() -> None:
       default='/usr/local/Cellar/tesseract/5.5.0/share/tessdata',
       help='Path to tesserdata folder of installed tesseract binary',
   )
+  parser.add_argument(
+      '--ocr-coverage-threshold',
+      type=float,
+      default=0.1,
+      help='Images with OCR coverage above this threshold may be excluded',
+  )
+  parser.add_argument(
+      '--ocr-text-threshold',
+      type=int,
+      default=100,
+      help='Images with OCR text count above this threshold may be excluded',
+  )
 
   args = parser.parse_args()
 
@@ -117,7 +129,13 @@ def main() -> None:
       old_count,
       args.exclude_dates or [],
   )
-  html_generator.generate(result_set, groups, args.minimum_score)
+  html_generator.generate(
+      result_set,
+      groups,
+      args.minimum_score,
+      args.ocr_coverage_threshold,
+      args.ocr_text_threshold,
+  )
   organiser.process(
       result_set,
       args.output_dir,

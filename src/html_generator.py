@@ -30,8 +30,10 @@ def generate(
     result_set: result_manager.ResultSet,
     groups: list[list[result_manager.Result]],
     minimum_score: float,
+    ocr_coverage_threshold: float,
+    ocr_text_threshold: int,
 ) -> None:
-  results_list = list(result_set.results.values())
+  results_list: list[result_manager.Result] = list(result_set.results.values())
   results_list.sort(key=lambda result: result.total, reverse=True)
 
   # Calculate label stats
@@ -109,6 +111,22 @@ def generate(
       total_counts=total_counts,
       minimum_score=minimum_score,
   )
+
+  results_with_ocr = [result for result in results_list if result.ocr_text]
+  results_with_ocr.sort(key=lambda result: (len(result.ocr_text), result.ocr_coverage), reverse=True)
+  for index in range(0, len(results_with_ocr), SCORES_PER_PAGE):
+    results_page = results_with_ocr[index:index+SCORES_PER_PAGE]
+    index_min = index + 1
+    index_max = index + len(results_page)
+    _render_file(
+        'ocr.tpl',
+        html_dir / f'ocr_{index_min}_{index_max}.html',
+        index_min=index_min,
+        index_max=index_max,
+        results=results_page,
+        ocr_coverage_threshold=ocr_coverage_threshold,
+        ocr_text_threshold=ocr_text_threshold,
+    )
 
   print('HTML done!')
 
