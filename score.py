@@ -7,6 +7,7 @@ from src import html_generator
 from src import organiser
 from src import result_manager
 from src import score_processor
+from src import server
 from src.config import Config
 
 # Copy chosen files to another directory
@@ -111,6 +112,11 @@ def main() -> None:
       default=100,
       help='Images with OCR text count above this threshold may be excluded',
   )
+  parser.add_argument(
+      '--serve',
+      action='store_true',
+      help='Whether to run the server (after doing everything else)',
+  )
 
   args = parser.parse_args()
   recent_count = int(args.output_count * args.recent_percent / 100)
@@ -140,6 +146,8 @@ def main() -> None:
   scorer.update_chosen()
   html_generator.generate(config, result_set, groups)
   organiser.process(config, result_set)
+  if args.serve:
+    server.serve(config, result_set, groups)
 
 
 if __name__ == '__main__':
