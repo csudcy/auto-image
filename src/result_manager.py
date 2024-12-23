@@ -10,6 +10,8 @@ from typing import Optional
 import cachetools
 from PIL import Image
 
+from src.config import Config
+
 # 2024-10-21 10.52.09-1.jpg
 # skin-2018-07-18 12.59.08-2.jpg
 # IMG_20240608_141605_1.jpg
@@ -108,9 +110,9 @@ def load_image(path: pathlib.Path) -> Image.Image:
 
 class ResultSet:
 
-  def __init__(self, image_folder: pathlib.Path):
-    self.image_folder = image_folder
-    self.path = image_folder / '_auto_image.json'
+  def __init__(self, config: Config):
+    self.config = config
+    self.path = self.config.input_dir / '_auto_image.json'
     self.results: dict[Result] = {}
     if self.path.exists():
       with self.path.open('r') as f:

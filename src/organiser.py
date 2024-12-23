@@ -7,13 +7,13 @@ from PIL import ImageFont
 from PIL import ImageOps
 
 from src import result_manager
+from src.config import Config
 
 
 def process(
+    config: Config,
     result_set: result_manager.ResultSet,
-    output_folder: pathlib.Path,
-    apply: bool,
-    crop_size: Optional[tuple[int, int]],
+    # TODO: Move to CLI/config
     font_size: int = 50,
     font_filename: str = 'Tahoma.ttf',
     text_offset_x: int = 20,
@@ -33,10 +33,10 @@ def process(
 
   print('Checking files...')
   # Find all files in the target folder
-  output_folder.mkdir(parents=True, exist_ok=True)
+  config.output_dir.mkdir(parents=True, exist_ok=True)
   existing_files = {
       file.name: file
-      for file in output_folder.iterdir()
+      for file in config.output_dir.iterdir()
   }
   existing_file_set = set(existing_files.keys())
 
@@ -53,7 +53,7 @@ def process(
   files_to_remove = existing_file_set - chosen_file_set
   print(f'File operations: {len(files_to_add)} add, {len(files_to_remove)} remove')
 
-  if apply:
+  if config.apply:
     # Remove old files
     print(f'Removing {len(files_to_remove)} old files...')
     for index, filename in enumerate(files_to_remove):
@@ -65,14 +65,14 @@ def process(
     print(f'Copying {len(files_to_add)} new files...')
     for index, filename in enumerate(files_to_add):
       result = chosen_results[filename]
-      output_path = output_folder / filename
-      if crop_size:
+      output_path = config.output_dir / filename
+      if config.crop_size:
         image_width, image_height = result.image.size
         if result.centre:
           centre = (result.centre[0] / image_width, result.centre[1] / image_height)
         else:
           centre = (0.5, 0.5)
-        cropped = ImageOps.fit(result.image, crop_size, centering=centre)
+        cropped = ImageOps.fit(result.image, config.crop_size, centering=centre)
 
         draw = ImageDraw.Draw(cropped)
         def _draw_text(x: int, y: int, text: str) -> None:
@@ -83,13 +83,13 @@ def process(
           draw.text((x, y), text, font_colour, font=font)
 
         # Add location
-        text_top = crop_size[1] + text_offset_y
+        text_top = config.crop_size[1] + text_offset_y
         if result.location:
           _draw_text(text_offset_x, text_top, result.location)
         if result.taken:
           taken_text = result.taken.strftime(taken_format)
           taken_size = int(draw.textlength(taken_text, font=font))
-          taken_x = crop_size[0] - taken_size - 2 * text_offset_x
+          taken_x = config.crop_size[0] - taken_size - 2 * text_offset_x
           _draw_text(taken_x, text_top, taken_text)
 
         cropped.save(output_path, quality=95)

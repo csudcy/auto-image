@@ -15,6 +15,7 @@ import torch
 
 from src import geocode_manager
 from src import result_manager
+from src.config import Config
 
 EXTENSIONS = ('jpg', 'png')
 HIDE_SKIP_EXTENSIONS = ('mp4', 'html', 'gif', 'json')
@@ -42,17 +43,15 @@ class Scorer:
 
   def __init__(
       self,
+      config: Config,
       result_set: result_manager.ResultSet,
       geocoder: geocode_manager.GeoCoder,
-      image_limit: Optional[int] = None,
-      tesser_path: Optional[str] = None,
   ):
+    self.config = config
     self.result_set = result_set
     self.geocoder = geocoder
-    self.image_limit = image_limit
-    self.tesser_path = tesser_path
 
-    self._all_files = list(self.result_set.image_folder.rglob('*'))
+    self._all_files = list(self.config.input_dir.rglob('*'))
     self._file_count = len(self._all_files)
     self._overall_processed = 0
     self._overall_time = time.perf_counter()
@@ -69,13 +68,13 @@ class Scorer:
     print('Processing files...')
     next_time = self._overall_time
 
-    if self.tesser_path:
-      tesser_api = tesserocr.PyTessBaseAPI(path=self.tesser_path)
+    if self.config.tesser_path:
+      tesser_api = tesserocr.PyTessBaseAPI(path=self.config.tesser_path)
     else:
       tesser_api = None
 
     for index, path in enumerate(self._all_files):
-      if self.image_limit and index >= self.image_limit:
+      if self.config.max_images and index >= self.config.max_images:
         print('Hit limit; stopping...')
         break
 
@@ -245,18 +244,9 @@ class Scorer:
     print(f'Found {len(groups)} group(s)!')
     return groups
 
-  def update_chosen(
-      self,
-      recent_delta: datetime.timedelta,
-      minimum_score: float,
-      ocr_coverage_threshold: float,
-      ocr_text_threshold: int,
-      top_recent_count: int,
-      top_old_count: int,
-      exclude_dates: list[datetime.date],
-  ) -> None:
+  def update_chosen(self) -> None:
     now = datetime.datetime.now()
-    recent_minimum = now - recent_delta
+    recent_minimum = now - self.config.recent_delta
 
     results_list: list[result_manager.Result] = sorted(
         self.result_set.results.values(),
@@ -276,27 +266,27 @@ class Scorer:
           # This image doesn't exist
           result.path is None,
           # This image doesn't score enough
-          result.total < minimum_score,
+          result.total < self.config.minimum_score,
           # This date is excluded
-          result.taken and result.taken.date() in exclude_dates,
+          result.taken and result.taken.date() in self.config.exclude_dates,
           # This group has already been chosen already
           result.group_index in used_groups,
           # Too much text
           all((
-              (result.ocr_coverage or 0) >= ocr_coverage_threshold,
-              len(result.ocr_text or '') >= ocr_text_threshold,
+              (result.ocr_coverage or 0) >= self.config.ocr_coverage_threshold,
+              len(result.ocr_text or '') >= self.config.ocr_text_threshold,
           ))
       )):
         continue
  
       if result.is_recent:
-        if recent_chosen_count < top_recent_count:
+        if recent_chosen_count < self.config.recent_count:
           result.is_chosen = True
           recent_chosen_count += 1
       else:
-        if old_chosen_count < top_old_count:
+        if old_chosen_count < self.config.old_count:
           result.is_chosen = True
           old_chosen_count += 1
       if result.is_chosen and result.group_index is not None:
         used_groups.append(result.group_index)
-    print(f'Chose {recent_chosen_count} (/{top_recent_count}) recent & {old_chosen_count} (/{top_old_count}) old')
+    print(f'Chose {recent_chosen_count} (/{self.config.recent_count}) recent & {old_chosen_count} (/{self.config.old_count}) old')

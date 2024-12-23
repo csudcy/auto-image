@@ -4,7 +4,6 @@ import datetime
 import json
 import os
 import pathlib
-import re
 import tempfile
 import time
 from typing import Any, Optional
@@ -14,6 +13,7 @@ from PIL import ExifTags
 import requests
 
 from src import result_manager
+from src.config import Config
 
 USER_AGENT = 'AutoImage; https://github.com/csudcy/auto-image'
 HEADERS = {'User-Agent': USER_AGENT}
@@ -120,10 +120,9 @@ def _decode_coords(coords: tuple[Any, Any, Any], ref: str) -> float:
 
 class GeoCoder:
 
-  def __init__(self, image_folder: pathlib.Path, precision: int):
-    self.image_folder = image_folder
-    self.precision = precision
-    self.path = image_folder / '_auto_image_geocoding.json'
+  def __init__(self, config: Config):
+    self.config = config
+    self.path = self.config.input_dir / '_auto_image_geocoding.json'
     self.next_request = datetime.datetime.now()
     self.results: dict[GeoCodeResult] = {}
     if self.path.exists():
@@ -161,8 +160,8 @@ class GeoCoder:
     return result_manager.LatLon(lat=lat, lon=lon)
 
   def get_name(self, lat_lon: result_manager.LatLon) -> GeoCodeResult:
-    lat_dp = round(lat_lon.lat, self.precision)
-    lon_dp = round(lat_lon.lon, self.precision)
+    lat_dp = round(lat_lon.lat, self.config.latlng_precision)
+    lon_dp = round(lat_lon.lon, self.config.latlng_precision)
 
     key = (lat_dp, lon_dp)
     if key not in self.results:

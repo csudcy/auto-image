@@ -7,6 +7,7 @@ from src import html_generator
 from src import organiser
 from src import result_manager
 from src import score_processor
+from src.config import Config
 
 # Copy chosen files to another directory
 # Remove non-chosen files
@@ -112,38 +113,33 @@ def main() -> None:
   )
 
   args = parser.parse_args()
-
-  recent_delta = datetime.timedelta(days=args.recent_days)
   recent_count = int(args.output_count * args.recent_percent / 100)
   old_count = args.output_count - recent_count
-
-  result_set = result_manager.ResultSet(args.input_dir)
-  geocoder = geocode_manager.GeoCoder(args.input_dir, args.latlng_precision)
-  scorer = score_processor.Scorer(result_set, geocoder, image_limit=args.max_images, tesser_path=args.tesser_path)
-  scorer.process()
-  groups = scorer.find_groups()
-  scorer.update_chosen(
-      recent_delta,
-      args.minimum_score,
-      args.ocr_coverage_threshold,
-      args.ocr_text_threshold,
-      recent_count,
-      old_count,
-      args.exclude_dates or [],
-  )
-  html_generator.generate(
-      result_set,
-      groups,
-      args.minimum_score,
-      args.ocr_coverage_threshold,
-      args.ocr_text_threshold,
-  )
-  organiser.process(
-      result_set,
-      args.output_dir,
+  config = Config(
+      input_dir=args.input_dir,
+      output_dir=args.output_dir,
+      max_images=args.max_images,
+      minimum_score=args.minimum_score,
+      recent_delta=datetime.timedelta(days=args.recent_days),
+      recent_count=recent_count,
+      old_count=old_count,
       apply=args.apply,
       crop_size=(args.crop_width, args.crop_height) if args.crop else None,
+      exclude_dates=args.exclude_dates or [],
+      latlng_precision=args.latlng_precision,
+      tesser_path=args.tesser_path,
+      ocr_coverage_threshold=args.ocr_coverage_threshold,
+      ocr_text_threshold=args.ocr_text_threshold,
   )
+
+  result_set = result_manager.ResultSet(config)
+  geocoder = geocode_manager.GeoCoder(config)
+  scorer = score_processor.Scorer(config, result_set, geocoder)
+  scorer.process()
+  groups = scorer.find_groups()
+  scorer.update_chosen()
+  html_generator.generate(config, result_set, groups)
+  organiser.process(config, result_set)
 
 
 if __name__ == '__main__':

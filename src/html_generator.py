@@ -7,6 +7,7 @@ import jinja2
 
 from src import result_manager
 from src import score_processor
+from src.config import Config
 
 JINJA_ENV = jinja2.Environment(
     loader=jinja2.FileSystemLoader('templates'),
@@ -27,11 +28,9 @@ class Counts:
 
 
 def generate(
+    config: Config,
     result_set: result_manager.ResultSet,
     groups: list[list[result_manager.Result]],
-    minimum_score: float,
-    ocr_coverage_threshold: float,
-    ocr_text_threshold: int,
 ) -> None:
   results_list: list[result_manager.Result] = list(result_set.results.values())
   results_list.sort(key=lambda result: result.total, reverse=True)
@@ -79,7 +78,7 @@ def generate(
         total_counts.old_chosen += 1
 
   print('Generating HTML...')
-  html_dir = result_set.image_folder / '_auto_image'
+  html_dir = config.input_dir / '_auto_image'
   if html_dir.exists():
     shutil.rmtree(html_dir)
   html_dir.mkdir()
@@ -97,7 +96,7 @@ def generate(
         index_min=index_min,
         index_max=index_max,
         results=results_page,
-        minimum_score=minimum_score,
+        minimum_score=config.minimum_score,
     )
   _render_file(
       'groups.tpl',
@@ -109,7 +108,7 @@ def generate(
       html_dir / 'counts.html',
       score_counts=score_counts,
       total_counts=total_counts,
-      minimum_score=minimum_score,
+      minimum_score=config.minimum_score,
   )
 
   results_with_ocr = [result for result in results_list if result.ocr_text]
@@ -124,8 +123,8 @@ def generate(
         index_min=index_min,
         index_max=index_max,
         results=results_page,
-        ocr_coverage_threshold=ocr_coverage_threshold,
-        ocr_text_threshold=ocr_text_threshold,
+        ocr_coverage_threshold=config.ocr_coverage_threshold,
+        ocr_text_threshold=config.ocr_text_threshold,
     )
 
   print('HTML done!')
