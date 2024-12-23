@@ -125,6 +125,8 @@ def main() -> None:
   scorer.update_chosen(
       recent_delta,
       args.minimum_score,
+      args.ocr_coverage_threshold,
+      args.ocr_text_threshold,
       recent_count,
       old_count,
       args.exclude_dates or [],

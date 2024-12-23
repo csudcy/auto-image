@@ -249,6 +249,8 @@ class Scorer:
       self,
       recent_delta: datetime.timedelta,
       minimum_score: float,
+      ocr_coverage_threshold: float,
+      ocr_text_threshold: int,
       top_recent_count: int,
       top_old_count: int,
       exclude_dates: list[datetime.date],
@@ -279,6 +281,11 @@ class Scorer:
           result.taken and result.taken.date() in exclude_dates,
           # This group has already been chosen already
           result.group_index in used_groups,
+          # Too much text
+          all((
+              (result.ocr_coverage or 0) >= ocr_coverage_threshold,
+              len(result.ocr_text or '') >= ocr_text_threshold,
+          ))
       )):
         continue
  
