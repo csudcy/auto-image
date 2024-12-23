@@ -22,8 +22,8 @@
                   {{ result.file_id }}<br/>
                   {{ '{:.03f}'.format(result.total) }}<br/>
                   {{ result.is_chosen and 'Yes' or '-' }}<br/>
-                  <a href="{{ result.file_id }}" target="_blank">
-                    <img src="{{ result.file_id }}" style="max-height: 100px;">
+                  <a href="{{ result.path }}" target="_blank">
+                    <img src="{{ result.path }}" style="max-height: 100px;">
                   </a>
                 </td>
               {% endfor %}

@@ -60,8 +60,8 @@
                 {% endif %}
               </td>
               <td>
-                <a href="../{{ result.file_id }}" target="_blank">
-                  <img src="../{{ result.file_id }}" style="max-height: 100px;">
+                <a href="{{ result.path }}" target="_blank">
+                  <img src="{{ result.path }}" style="max-height: 100px;">
                 </a>
               </td>
               <td {% if result.total < minimum_score %}style="background-color: lightpink;"{% endif %}>

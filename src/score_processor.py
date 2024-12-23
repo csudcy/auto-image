@@ -137,11 +137,11 @@ class Scorer:
       return
 
     self._overall_processed += 1
-    result.path = path
+    result.path = path.absolute()
 
     # Find the centre (when necessary)
     if not result.centre:
-      result.centre = self._get_centre(path)
+      result.centre = self._get_centre(result.path)
 
     # Find the location (when necessary)
     if not result.lat_lon_extracted:
@@ -169,7 +169,7 @@ class Scorer:
       try:
         result.scores = self._score(result.image)
       except Exception as ex:
-        print(f'  Error scoring {path.name} - {ex}')
+        print(f'  Error scoring {result.path.name} - {ex}')
         return
 
     # Calculate the total
