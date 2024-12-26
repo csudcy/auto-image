@@ -1,5 +1,7 @@
-import flask
+from http import client
 import os
+
+import flask
 
 from src import result_manager
 from src.config import Config
@@ -21,5 +23,13 @@ def serve(
   def results_handler():
     results = [result.to_api_dict() for result in result_set.results.values()]
     return flask.jsonify(results)
+
+  @app.route('/image/<file_id>')
+  def image_handler(file_id: str):
+    result = result_set.results.get(file_id)
+    if result and result.path:
+      return flask.send_file(result.path)
+    else:
+      return flask.abort(client.NOT_FOUND)
 
   app.run()

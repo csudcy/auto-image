@@ -4,3 +4,13 @@
     text-overflow: ellipsis;
     max-width: 30vw;
 }
+
+.image-thumbnail {
+    height: 10vw;
+    width: 10vw;
+}
+
+.image-thumbnail img {
+    max-height: 100%;
+    max-width: 100%;
+}

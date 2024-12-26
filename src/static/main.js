@@ -7,12 +7,21 @@ document.addEventListener('DOMContentLoaded', function() {
   $('#data-table').DataTable({
       ajax: {
           url: '/api/results',
-          dataSrc: ''
+          dataSrc: '',
       },
       columns: [
           {
               data: 'file_id',
               title: 'File',
+              render: (file_id) => {
+                return `
+                  <a target="_blank" href="/image/${file_id}">
+                    ${file_id}
+                    <div class="image-thumbnail">
+                      <img src="/image/${file_id}"/>
+                    </div>
+                  </a>`;
+              },
           },
           // {
           //     data: 'centre',
