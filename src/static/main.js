@@ -32,18 +32,20 @@ document.addEventListener('DOMContentLoaded', function() {
               title: 'Recent?',
               render: render_bool,
           },
-          // {
-          //     data: 'lat_lon',
-          //     title: 'Lat/Lon',
-          // },
-          // {
-          //     data: 'lat_lon_extracted',
-          //     title: 'Lat/Lon Extracted',
-          // },
           {
               data: 'location',
               title: 'Location',
-              // http://www.openstreetmap.org/?mlat=51.637989044166666&mlon=-0.7550203202777778&zoom=12
+              render: (location, type, row) => {
+                if (row.lat_lon) {
+                  return `<a
+                      href="http://www.openstreetmap.org/?mlat=${row.lat_lon.lat}&mlon=${row.lat_lon.lon}&zoom=9"
+                      target="_blank">
+                      ${location}
+                    </a>`;
+                } else {
+                  return location;
+                }
+              },
           },
           {
               data: 'ocr_coverage',
