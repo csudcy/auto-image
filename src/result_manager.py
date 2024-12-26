@@ -102,6 +102,21 @@ class Result:
         'scores': self.scores,
     }
 
+  def to_api_dict(self) -> dict:
+    output = self.to_dict()
+    if self.taken:
+      taken = self.taken.isoformat()
+    else:
+      taken = None
+    output.update({
+        'taken': taken,
+        'total': self.total,
+        'group_index': self.group_index,
+        'is_recent': self.is_recent,
+        'is_chosen': self.is_chosen,
+    })
+    return output
+
 
 @cachetools.cached(IMAGE_CACHE)
 def load_image(path: pathlib.Path) -> Image.Image:
