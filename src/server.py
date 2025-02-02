@@ -1,4 +1,5 @@
 from http import client
+import math
 import os
 
 import flask
@@ -26,6 +27,37 @@ def serve(
   @app.route('/')
   def index():
     return flask.render_template('index.tpl')
+
+  @app.route('/grid')
+  def grid():
+    # TODO: Process query params
+    try:
+      page_index = int(flask.request.args.get('page_index'))
+    except:
+      page_index = 0
+    page_size = 25
+
+    # Validate params
+    total_results = len(result_set.results)
+    total_pages = math.ceil(total_results / page_size)
+    page_index = max(min(page_index, total_pages - 1), 0)
+
+    # Filter/paginate results
+    results = sorted(result_set.results.values(), key=lambda result: result.taken)
+    start_index = page_index * page_size
+    end_index = start_index + page_size
+    page = results[start_index:end_index]
+
+    return flask.render_template(
+        'grid.tpl',
+        page_index=page_index,
+        page_size=page_size,
+        total_results=total_results,
+        total_pages=total_pages,
+        page=page,
+        start_index=start_index,
+        end_index=end_index,
+    )
 
   @app.route('/api/results')
   def results_handler():
