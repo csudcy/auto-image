@@ -37,6 +37,11 @@ document.addEventListener('DOMContentLoaded', function() {
               render: render_bool,
           },
           {
+              data: 'exclude',
+              title: 'Exclude',
+              render: render_bool,
+          },
+          {
               data: 'is_recent',
               title: 'Recent?',
               render: render_bool,

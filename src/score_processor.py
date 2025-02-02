@@ -262,20 +262,24 @@ class Scorer:
       else:
         result.is_recent = False
 
+      # Check if this date is excluded
+      if result.taken and result.taken.date() in self.config.exclude_dates:
+        result.exclude = True
+
       if any((
           # This image doesn't exist
           result.path is None,
           # This image doesn't score enough
           result.total < self.config.minimum_score,
-          # This date is excluded
-          result.taken and result.taken.date() in self.config.exclude_dates,
           # This group has already been chosen already
           result.group_index in used_groups,
           # Too much text
           all((
               (result.ocr_coverage or 0) >= self.config.ocr_coverage_threshold,
               len(result.ocr_text or '') >= self.config.ocr_text_threshold,
-          ))
+          )),
+          # This result has been specifically excluded
+          result.exclude,
       )):
         continue
  
