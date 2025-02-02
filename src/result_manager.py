@@ -16,6 +16,8 @@ from src.config import Config
 # skin-2018-07-18 12.59.08-2.jpg
 # IMG_20240608_141605_1.jpg
 DATETIME_RE = r'.*(\d{4}-?\d{2}-?\d{2}[ _]\d{2}.?\d{2}.?\d{2})'
+# IMG-20161101-WA0000.jpg 
+DATE_RE = r'.*(\d{4}-?\d{2}-?\d{2})'
 DATETIME_FORMAT = '%Y%m%d %H%M%S'
 
 IMAGE_CACHE = cachetools.LRUCache(maxsize=16)
@@ -58,16 +60,18 @@ class Result:
   @classmethod
   def parse_filename(cls, file_id: str) -> Optional[datetime.datetime]:
     # Parse the datetime from the filename
-    match = re.match(DATETIME_RE, file_id)
-    if match:
+    if match := re.match(DATETIME_RE, file_id):
       dt = match.group(1)
-      dt = dt.replace('-', '')
-      dt = dt.replace('.', '')
-      dt = dt.replace('_', ' ')
-      return datetime.datetime.strptime(dt, DATETIME_FORMAT)
+    elif match := re.match(DATE_RE, file_id):
+      dt = f'{match.group(1)} 000000'
     else:
       print(f'  Unable to parse date: {file_id}')
       return None
+
+    dt = dt.replace('-', '')
+    dt = dt.replace('.', '')
+    dt = dt.replace('_', ' ')
+    return datetime.datetime.strptime(dt, DATETIME_FORMAT)
 
   @classmethod
   def from_dict(cls, data: dict) -> 'Result':
