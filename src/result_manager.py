@@ -30,19 +30,22 @@ class LatLon:
 class Result:
   file_id: str
   scores: dict[str, dict[str, float]]
-  taken: Optional[datetime.datetime]
 
-  path: Optional[pathlib.Path] = None
+  # Loaded from dict
+  centre: Optional[tuple[float, float]] = None
+  lat_lon: Optional[LatLon] = None
+  lat_lon_extracted: bool = False
   ocr_coverage: Optional[float] = None
   ocr_text: Optional[str] = None
-  centre: Optional[tuple[float, float]] = None
-  lat_lon_extracted: bool = False
-  lat_lon: Optional[LatLon] = None
-  location: Optional[str] = None
-  total: float = 0
+
+  # Recalculated each time
   group_index: Optional[int] = None
-  is_recent: bool = False
   is_chosen: bool = False
+  is_recent: bool = False
+  location: Optional[str] = None
+  path: Optional[pathlib.Path] = None
+  taken: Optional[datetime.datetime] = None
+  total: float = 0
 
   @property
   def image(self) -> Image.Image:

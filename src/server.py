@@ -6,6 +6,14 @@ import flask
 from src import result_manager
 from src.config import Config
 
+# TODO:
+# - Allow include/exclude from UI
+# - Allow process/apply from UI
+# - Don't process when starting server
+# - Filtering (date range, number range, etc.)
+# - Click group to see just that group
+# - Only show top/chosen from group?
+# - Compact view + detail popup/page
 
 def serve(
     config: Config,
