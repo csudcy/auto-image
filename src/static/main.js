@@ -11,6 +11,17 @@ document.addEventListener('DOMContentLoaded', function() {
       },
       columns: [
           {
+              data: 'taken',
+              title: 'Taken',
+              type: 'date',
+              render: $.fn.dataTable.render.datetime(),
+          },
+          {
+              data: 'is_chosen',
+              title: 'Chosen',
+              render: render_bool,
+          },
+          {
               data: 'file_id',
               title: 'File',
               render: (file_id) => {
@@ -23,18 +34,9 @@ document.addEventListener('DOMContentLoaded', function() {
                   </a>`;
               },
           },
-          // {
-          //     data: 'centre',
-          //     title: 'Centre',
-          // },
           {
               data: 'group_index',
               title: 'Group Index',
-          },
-          {
-              data: 'is_chosen',
-              title: 'Chosen',
-              render: render_bool,
           },
           {
               data: 'exclude',
@@ -42,9 +44,9 @@ document.addEventListener('DOMContentLoaded', function() {
               render: render_bool,
           },
           {
-              data: 'is_recent',
-              title: 'Recent?',
-              render: render_bool,
+              data: 'total',
+              title: 'Total',
+              render: $.fn.dataTable.render.number(null, null, 2, null, null),
           },
           {
               data: 'location',
@@ -73,20 +75,18 @@ document.addEventListener('DOMContentLoaded', function() {
               className: 'limit-text-width',
           },
           // {
+          //     data: 'centre',
+          //     title: 'Centre',
+          // },
+          // {
+          //     data: 'is_recent',
+          //     title: 'Recent?',
+          //     render: render_bool,
+          // },
+          // {
           //     data: 'scores',
           //     title: 'Scores',
           // },
-          {
-              data: 'taken',
-              title: 'Taken',
-              type: 'date',
-              render: $.fn.dataTable.render.datetime(),
-          },
-          {
-              data: 'total',
-              title: 'Total',
-              render: $.fn.dataTable.render.number(null, null, 2, null, null),
-          },
-      ],
+        ],
   });
 });
