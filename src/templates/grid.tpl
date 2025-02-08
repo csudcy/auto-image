@@ -34,7 +34,7 @@
 
   {% for result in page %}
     <span class="grid">
-      <a target="_blank" href="/image/{{ result.file_id }}">
+      <a target="_blank" href="/result/{{ result.file_id }}">
         <div class="image-thumbnail" title="{{ result.file_id }}">
           <img src="/image/{{ result.file_id }}"/>
         </div>

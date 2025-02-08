@@ -13,8 +13,6 @@ from src.config import Config
 # - Don't process when starting server
 # - Filtering (date range, number range, etc.)
 # - Click group to see just that group
-# - Only show top/chosen from group?
-# - Compact view + detail popup/page
 
 def serve(
     config: Config,
@@ -66,6 +64,14 @@ def serve(
         start_index=start_index,
         end_index=end_index,
     )
+
+  @app.route('/result/<file_id>')
+  def result_handler(file_id: str):
+    result = result_set.results.get(file_id)
+    if result:
+      return flask.render_template('result.tpl', result=result)
+    else:
+      return flask.abort(client.NOT_FOUND)
 
   @app.route('/api/results')
   def results_handler():

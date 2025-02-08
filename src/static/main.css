@@ -9,6 +9,11 @@
     height: 10vw;
     width: 10vw;
 
+    &.large {
+        height: 30vw;
+        width: 30vw;
+    }
+
     img {
         height: 100%;
         object-fit: contain;
@@ -43,4 +48,8 @@
     .settings {
         margin-left: 20px;
     }
+}
+
+table {
+    display: inline-block;
 }

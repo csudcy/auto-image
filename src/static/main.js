@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
               title: 'File',
               render: (file_id) => {
                 return `
-                  <a target="_blank" href="/image/${file_id}">
+                  <a target="_blank" href="/result/${file_id}">
                     ${file_id}
                     <div class="image-thumbnail">
                       <img src="/image/${file_id}"/>
