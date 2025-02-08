@@ -30,7 +30,7 @@ def serve(
 
   @app.route('/grid')
   def grid():
-    # TODO: Process query params
+    # Process query params
     try:
       page_index = int(flask.request.args.get('page_index'))
     except:
@@ -39,20 +39,25 @@ def serve(
       page_size = int(flask.request.args.get('page_size'))
     except:
       page_size = 25
+    chosen_only = ('chosen_only' in flask.request.args)
+
+    results = sorted(result_set.results.values(), key=lambda result: result.taken)
+    if chosen_only:
+      results = [result for result in results if result.is_chosen]
 
     # Validate params
-    total_results = len(result_set.results)
+    total_results = len(results)
     total_pages = math.ceil(total_results / page_size)
     page_index = max(min(page_index, total_pages - 1), 0)
 
     # Filter/paginate results
-    results = sorted(result_set.results.values(), key=lambda result: result.taken)
     start_index = page_index * page_size
     end_index = start_index + page_size
     page = results[start_index:end_index]
 
     return flask.render_template(
         'grid.tpl',
+        chosen_only=chosen_only,
         page_index=page_index,
         page_size=page_size,
         total_results=total_results,
