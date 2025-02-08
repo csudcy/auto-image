@@ -1,16 +1,46 @@
 .limit-text-width {
-    white-space: nowrap;
+    max-width: 30vw;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 30vw;
+    white-space: nowrap;
 }
 
 .image-thumbnail {
     height: 10vw;
     width: 10vw;
+
+    img {
+        height: 100%;
+        object-fit: contain;
+        width: 100%;
+    }
 }
 
-.image-thumbnail img {
-    max-height: 100%;
-    max-width: 100%;
+.grid {
+    border-radius: 5px;
+    border: 1px solid black;
+    display: inline-block;
+    padding: 2px;
+}
+
+.nav {
+    background-color: aliceblue;
+    border: 1px solid black;
+    border-radius: 10px;
+    padding: 5px;
+
+    .icon {
+        background: none;
+        border: none;
+        font-size: 1.2em;
+        padding: 0px;
+
+        button& {
+            cursor: pointer;
+        }
+    }
+
+    input {
+        margin-left: 10px;
+    }
 }

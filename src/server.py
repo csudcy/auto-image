@@ -35,7 +35,10 @@ def serve(
       page_index = int(flask.request.args.get('page_index'))
     except:
       page_index = 0
-    page_size = 25
+    try:
+      page_size = int(flask.request.args.get('page_size'))
+    except:
+      page_size = 25
 
     # Validate params
     total_results = len(result_set.results)

@@ -3,34 +3,36 @@
 {% block title %}Page {{ page_index + 1 }} of {{ total_pages }}{% endblock %}
 
 {% block content %}
-  {% if page_index > 0 %}
-    <a href="?page_index=0">⏪</a>
-    <a href="?page_index={{ page_index - 1}}">⬅️</a>
-  {% else %}
-    ⏪
-    ⬅️
-  {% endif %}
-  {{ page_index + 1 }}
-  {% if page_index < total_pages - 1 %}
-    <a href="?page_index={{ page_index + 1}}">➡️</a>
-    <a href="?page_index={{ total_pages - 1 }}">⏩</a>
-  {% else %}
-    ➡️
-    ⏩
-  {% endif %}
+  <div class="nav">
+    <form action="/grid" method="get">
+      {% if page_index > 0 %}
+        <button class="icon" type="submit" name="page_index" value="0">⏪</button>
+        <button class="icon" type="submit" name="page_index" value="{{ page_index - 1}}">⬅️</button>
+      {% else %}
+        <span class="icon">⏪</span>
+        <span class="icon">⬅️</span>
+      {% endif %}
+      {{ page_index + 1 }}
+      {% if page_index < total_pages - 1 %}
+        <button class="icon" type="submit" name="page_index" value="{{ page_index + 1}}">➡️</button>
+        <button class="icon" type="submit" name="page_index" value="{{ total_pages - 1}}">⏩</button>
+      {% else %}
+        <span class="icon">➡️</span>
+        <span class="icon">⏩</span>
+      {% endif %}
 
-  <hr/>
-
-  <ul>
-    <li>page_size: {{ page_size }}</li>
-  </ul>
+      <input type="number" min="10" max="1000" name="page_size" value="{{ page_size }}"/>
+      <button type="submit">Set page size</button>
+    </form>
+  </div>
 
   {% for result in page %}
-    <a target="_blank" href="/image/{{ result.file_id }}">
-      {{ result.file_id }}
-      <div class="image-thumbnail">
-        <img src="/image/{{ result.file_id }}"/>
-      </div>
-    </a>
+    <span class="grid">
+      <a target="_blank" href="/image/{{ result.file_id }}">
+        <div class="image-thumbnail" title="{{ result.file_id }}">
+          <img src="/image/{{ result.file_id }}"/>
+        </div>
+      </a>
+    </span>
   {% endfor %}
 {% endblock %}
