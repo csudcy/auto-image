@@ -12,7 +12,7 @@ from src.config import Config
 # - Allow process/apply from UI
 # - Don't process when starting server
 # - Filtering (date range, number range, etc.)
-# - Click group to see just that group
+# - Change group page to use repeated result detail page?
 
 def serve(
     config: Config,
@@ -70,6 +70,18 @@ def serve(
     result = result_set.results.get(file_id)
     if result:
       return flask.render_template('result.tpl', result=result)
+    else:
+      return flask.abort(client.NOT_FOUND)
+
+  @app.route('/group/<int:group_index>')
+  def group_handler(group_index: int):
+    results = [
+        result
+        for result in result_set.results.values()
+        if result.group_index == group_index
+    ]
+    if results:
+      return flask.render_template('group.tpl', group_index=group_index, results=results)
     else:
       return flask.abort(client.NOT_FOUND)
 

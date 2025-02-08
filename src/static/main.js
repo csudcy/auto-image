@@ -37,6 +37,16 @@ document.addEventListener('DOMContentLoaded', function() {
           {
               data: 'group_index',
               title: 'Group Index',
+              render: (group_index) => {
+                if (group_index) {
+                  return `
+                    <a target="_blank" href="/group/${group_index}">
+                      ${group_index}
+                    </a>`;
+                } else {
+                  return '';
+                }
+              },
           },
           {
               data: 'exclude',

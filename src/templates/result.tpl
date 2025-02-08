@@ -4,7 +4,7 @@
 
 {% block content %}
   <h1>{{ result.file_id }}</h1>
-  <span class="grid">
+  <span class="grid {% if result.is_chosen %}chosen{% endif %} {% if result.exclude %}exclude{% endif %}">
     <a target="_blank" href="/image/{{ result.file_id }}">
       <div class="image-thumbnail large" title="{{ result.file_id }}">
         <img src="/image/{{ result.file_id }}"/>
@@ -22,7 +22,15 @@
     </tr>
     <tr>
       <th>Group Index</th>
-      <td>{{ result.group_index or '-' }}</td>
+      <td>
+        {% if result.group_index %}
+          <a target="_blank" href="/group/{{ result.group_index }}">
+            {{ result.group_index }}
+          </a>
+        {% else %}
+          -
+        {% endif %}
+      </td>
     </tr>
 
     <tr>

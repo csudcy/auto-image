@@ -33,8 +33,14 @@
   </div>
 
   {% for result in page %}
-    <span class="grid">
-      <a target="_blank" href="/result/{{ result.file_id }}">
+    <span class="grid {% if result.is_chosen %}chosen{% endif %} {% if result.exclude %}exclude{% endif %}">
+      <a target="_blank"
+        {% if result.group_index %}
+          href="/group/{{ result.group_index }}"
+        {% else %}
+          href="/result/{{ result.file_id }}"
+        {% endif %}
+        >
         <div class="image-thumbnail" title="{{ result.file_id }}">
           <img src="/image/{{ result.file_id }}"/>
         </div>
