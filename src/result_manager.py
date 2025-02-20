@@ -1,5 +1,6 @@
 import dataclasses
 import datetime
+from io import BytesIO
 import json
 import os
 import pathlib
@@ -23,6 +24,7 @@ DATE_RE = r'.*(\d{4}-?\d{2}-?\d{2})'
 DATETIME_FORMAT = '%Y%m%d %H%M%S'
 
 IMAGE_CACHE = cachetools.LRUCache(maxsize=128)
+CROP_CACHE = cachetools.LRUCache(maxsize=128)
 
 @dataclasses.dataclass
 class LatLon:
@@ -135,7 +137,8 @@ class Result:
       self.is_chosen = False
     # Otherwise, this will need to be updated next time processing is done
 
-  def get_cropped(self, config: Config) -> None:
+  def get_cropped(self, config: Config) -> Image.Image:
+    # return _get_cropped(config, self)
     image_width, image_height = self.image.size
     if self.centre:
       centre = (self.centre[0] / image_width, self.centre[1] / image_height)
@@ -166,6 +169,14 @@ class Result:
       _draw_text(taken_x, text_top, taken_text)
 
     return cropped
+
+  @cachetools.cached(CROP_CACHE, key=lambda self, _: f'{self.file_id}')
+  def get_cropped_bytes(self, config: Config) -> bytes:
+    cropped = self.get_cropped(config)
+    img_io = BytesIO()
+    cropped.save(img_io, 'JPEG', quality=config.output_quality)
+    img_io.seek(0)
+    return img_io.getvalue()
 
 
 @cachetools.cached(IMAGE_CACHE)

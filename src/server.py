@@ -9,18 +9,20 @@ from src import result_manager
 from src.config import Config
 
 # TODO:
-# - Add more filtering:
+# - More filtering:
 #   - Date (range?)
 #   - Score (range?)
 #   - OCR text contains
 #   - Include ovverride setting
 #   - Location name includes
 #   - ...
+# - Sorting?
+# - Replace table view with a stats page
 # - Allow process/apply from UI
 # - Don't process when starting server
 # - Allow address to be overridden (per-image or per-latlng)
 # - Allow crop to be changed
-# - Re-generate cropped/captioned image if crop/addres changes
+# - Re-generate cropped/captioned image if crop/address changes
 
 INCLUDE_OVERRIDE_VALUES = {
     'true': True,
@@ -128,7 +130,7 @@ def serve(
   def image_handler(file_id: str):
     result = result_set.results.get(file_id)
     if result and result.path:
-      return flask.send_file(result.path)
+      return flask.send_file(result.path, max_age=600)
     else:
       return flask.abort(client.NOT_FOUND)
 
@@ -136,11 +138,11 @@ def serve(
   def image_cropped_handler(file_id: str):
     result = result_set.results.get(file_id)
     if result and result.path:
-      cropped = result.get_cropped(config)
+      img_bytes = result.get_cropped_bytes(config)
       img_io = BytesIO()
-      cropped.save(img_io, 'JPEG', quality=config.output_quality)
+      img_io.write(img_bytes)
       img_io.seek(0)
-      return flask.send_file(img_io, mimetype='image/jpeg')
+      return flask.send_file(img_io, mimetype='image/jpeg', max_age=600)
     else:
       return flask.abort(client.NOT_FOUND)
 
