@@ -38,6 +38,15 @@ LABEL_WEIGHTS = {
 LABELS = list(LABEL_WEIGHTS.keys())
 LABEL_SET = set(LABELS)
 
+INCLUDE_OVERRIDE_ORDER = {
+    # Included images should be first (so they should be included before hitting the limit)
+    True: 0,
+    # Non-overridden images next
+    None: 1,
+    # Then excluded images (which don't really need to be here, but meh)
+    False: 2,
+}
+
 
 class Scorer:
 
@@ -250,7 +259,7 @@ class Scorer:
 
     results_list: list[result_manager.Result] = sorted(
         self.result_set.results.values(),
-        key=lambda result: result.total,
+        key=lambda result: (INCLUDE_OVERRIDE_ORDER[result.include_override], result.total),
         reverse=True,
     )
     used_groups = []
@@ -264,7 +273,7 @@ class Scorer:
 
       # Check if this date is excluded
       if result.taken and result.taken.date() in self.config.exclude_dates:
-        result.exclude = True
+        result.include_override = False
 
       if any((
           # This image doesn't exist
@@ -279,7 +288,7 @@ class Scorer:
               len(result.ocr_text or '') >= self.config.ocr_text_threshold,
           )),
           # This result has been specifically excluded
-          result.exclude,
+          result.include_override == False,
       )):
         continue
  

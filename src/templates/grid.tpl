@@ -33,7 +33,7 @@
   </div>
 
   {% for result in page %}
-    <span class="grid {% if result.is_chosen %}chosen{% endif %} {% if result.exclude %}exclude{% endif %}">
+    <span class="grid {% if result.is_chosen %}chosen{% endif %} {% if result.include_override == False %}exclude{% endif %}">
       <a target="_blank"
         {% if result.group_index %}
           href="/group/{{ result.group_index }}"

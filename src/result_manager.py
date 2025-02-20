@@ -35,7 +35,7 @@ class Result:
 
   # Loaded from dict
   centre: Optional[tuple[float, float]] = None
-  exclude: bool = False
+  include_override: Optional[bool] = None
   lat_lon: Optional[LatLon] = None
   lat_lon_extracted: bool = False
   ocr_coverage: Optional[float] = None
@@ -84,7 +84,7 @@ class Result:
       lat_lon_extracted = data.get('lat_lon_extracted') or False
     return Result(
         centre=data.get('centre'),
-        exclude=bool(data.get('exclude')),
+        include_override=data.get('include_override'),
         file_id=data['file_id'],
         lat_lon_extracted=lat_lon_extracted,
         lat_lon=lat_lon,
@@ -101,7 +101,7 @@ class Result:
       lat_lon = None
     return {
         'centre': self.centre,
-        'exclude': self.exclude,
+        'include_override': self.include_override,
         'file_id': self.file_id,
         'lat_lon_extracted': self.lat_lon_extracted,
         'lat_lon': lat_lon,

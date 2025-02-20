@@ -4,7 +4,7 @@
 
 {% block content %}
   <h1>{{ result.file_id }}</h1>
-  <span class="grid {% if result.is_chosen %}chosen{% endif %} {% if result.exclude %}exclude{% endif %}">
+  <span class="grid {% if result.is_chosen %}chosen{% endif %} {% if result.include_override == False %}exclude{% endif %}">
     <a target="_blank" href="/image/{{ result.file_id }}">
       <div class="image-thumbnail large" title="{{ result.file_id }}">
         <img src="/image/{{ result.file_id }}"/>
@@ -17,8 +17,18 @@
       <td>{{ result.is_chosen }}</td>
     </tr>
     <tr>
-      <th>Excluded?</th>
-      <td>{{ result.exclude }}</td>
+      <th>Override?</th>
+      <td>
+        {% if result.include_override == True %}
+          Include
+        {% else %}
+          {% if result.include_override == False %}
+            Exclude
+          {% else %}
+            -
+          {% endif %}
+        {% endif %}
+      </td>
     </tr>
     <tr>
       <th>Group Index</th>

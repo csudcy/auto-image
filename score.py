@@ -145,6 +145,7 @@ def main() -> None:
   groups = scorer.find_groups()
   scorer.update_chosen()
   html_generator.generate(config, result_set, groups)
+  result_set.save()
   organiser.process(config, result_set)
   if args.serve:
     server.serve(config, result_set, groups)

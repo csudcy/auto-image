@@ -2,6 +2,17 @@ function render_bool(value) {
   return value ? '✅' : '❌';
 }
 
+function render_override(value) {
+  switch (value) {
+    case true:
+      return 'Inc';
+    case false:
+      return 'Exc';
+    default:
+      return '-';
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   console.log('Yo');
   $('#data-table').DataTable({
@@ -49,9 +60,9 @@ document.addEventListener('DOMContentLoaded', function() {
               },
           },
           {
-              data: 'exclude',
-              title: 'Exclude',
-              render: render_bool,
+              data: 'include_override',
+              title: 'Override',
+              render: render_override,
           },
           {
               data: 'total',
