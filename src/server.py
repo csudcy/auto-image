@@ -8,11 +8,21 @@ from src import result_manager
 from src.config import Config
 
 # TODO:
-# - Allow include/exclude from UI
 # - Allow process/apply from UI
 # - Don't process when starting server
-# - Filtering (date range, number range, etc.)
+# - Add more filtering (date range, number range, OCR text, include ovverride, etc.)
 # - Change group page to use repeated result detail page?
+# - Show cropped/named version
+# - Allow address to be overridden (per-image or per-latlng)
+# - Allow crop to be changed
+# - Re-generate cropped/captioned image if crop/addres changes
+
+INCLUDE_OVERRIDE_VALUES = {
+    'true': True,
+    'false': False,
+    'none': None,
+}
+
 
 def serve(
     config: Config,
@@ -65,15 +75,19 @@ def serve(
         end_index=end_index,
     )
 
-  @app.route('/result/<file_id>')
+  @app.route('/result/<file_id>', methods=('GET', 'POST'))
   def result_handler(file_id: str):
     result = result_set.results.get(file_id)
     if result:
+      if flask.request.method == 'POST':
+        include_override = INCLUDE_OVERRIDE_VALUES[flask.request.form.get('include_override')]
+        result.update_include_override(include_override)
+        result_set.save()
       return flask.render_template('result.tpl', result=result)
     else:
       return flask.abort(client.NOT_FOUND)
 
-  @app.route('/group/<int:group_index>')
+  @app.route('/group/<int:group_index>', methods=('GET', 'POST'))
   def group_handler(group_index: int):
     results = [
         result
@@ -81,6 +95,11 @@ def serve(
         if result.group_index == group_index
     ]
     if results:
+      if flask.request.method == 'POST':
+        include_override = INCLUDE_OVERRIDE_VALUES[flask.request.form.get('include_override')]
+        for result in results:
+          result.update_include_override(include_override)
+        result_set.save()
       return flask.render_template('group.tpl', group_index=group_index, results=results)
     else:
       return flask.abort(client.NOT_FOUND)

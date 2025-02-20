@@ -19,15 +19,20 @@
     <tr>
       <th>Override?</th>
       <td>
-        {% if result.include_override == True %}
-          Include
-        {% else %}
-          {% if result.include_override == False %}
+        <form method="POST">
+          <button type="submit" name="include_override" value="false"
+            {% if result.include_override == False %}class="selected"{% endif %}>
             Exclude
-          {% else %}
-            -
-          {% endif %}
-        {% endif %}
+          </button>
+          <button type="submit" name="include_override" value="none"
+            {% if result.include_override == None %}class="selected"{% endif %}>
+            Clear
+          </button>
+          <button type="submit" name="include_override" value="true"
+            {% if result.include_override == True %}class="selected"{% endif %}>
+            Include
+          </button>
+        </form>
       </td>
     </tr>
     <tr>

@@ -125,6 +125,14 @@ class Result:
     })
     return output
 
+  def update_include_override(self, include_override: Optional[bool]) -> None:
+    self.include_override = include_override
+    if self.include_override == True:
+      self.is_chosen = True
+    elif self.include_override == False:
+      self.is_chosen = False
+    # Otherwise, this will need to be updated next time processing is done
+
 
 @cachetools.cached(IMAGE_CACHE)
 def load_image(path: pathlib.Path) -> Image.Image:
