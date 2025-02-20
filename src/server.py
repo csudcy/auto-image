@@ -9,7 +9,6 @@ from src import result_manager
 from src.config import Config
 
 # TODO:
-# - Change group page to use repeated result detail page?
 # - Add more filtering:
 #   - Date (range?)
 #   - Score (range?)
@@ -89,7 +88,11 @@ def serve(
         include_override = INCLUDE_OVERRIDE_VALUES[flask.request.form.get('include_override')]
         result.update_include_override(include_override)
         result_set.save()
-      return flask.render_template('result.tpl', result=result)
+      return flask.render_template(
+          'result.tpl',
+          title=result.file_id,
+          results=[result],
+      )
     else:
       return flask.abort(client.NOT_FOUND)
 
@@ -103,10 +106,16 @@ def serve(
     if results:
       if flask.request.method == 'POST':
         include_override = INCLUDE_OVERRIDE_VALUES[flask.request.form.get('include_override')]
+        file_id = flask.request.form.get('file_id')
         for result in results:
-          result.update_include_override(include_override)
+          if file_id is None or file_id == result.file_id:
+            result.update_include_override(include_override)
         result_set.save()
-      return flask.render_template('group.tpl', group_index=group_index, results=results)
+      return flask.render_template(
+          'result.tpl',
+          title=f'Group {group_index}',
+          results=results,
+      )
     else:
       return flask.abort(client.NOT_FOUND)
 
