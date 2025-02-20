@@ -254,23 +254,14 @@ class Scorer:
     return groups
 
   def update_chosen(self) -> None:
-    now = datetime.datetime.now()
-    recent_minimum = now - self.config.recent_delta
-
     results_list: list[result_manager.Result] = sorted(
         self.result_set.results.values(),
         key=lambda result: (INCLUDE_OVERRIDE_ORDER[result.include_override], result.total),
         reverse=True,
     )
     used_groups = []
-    recent_chosen_count = 0
-    old_chosen_count = 0
+    chosen_count = 0
     for result in results_list:
-      if result.taken:
-        result.is_recent = result.taken > recent_minimum
-      else:
-        result.is_recent = False
-
       if any((
           # This image doesn't exist
           result.path is None,
@@ -288,14 +279,9 @@ class Scorer:
       )):
         continue
  
-      if result.is_recent:
-        if recent_chosen_count < self.config.recent_count:
-          result.is_chosen = True
-          recent_chosen_count += 1
-      else:
-        if old_chosen_count < self.config.old_count:
-          result.is_chosen = True
-          old_chosen_count += 1
+      if chosen_count < self.config.output_count:
+        result.is_chosen = True
+        chosen_count += 1
       if result.is_chosen and result.group_index is not None:
         used_groups.append(result.group_index)
-    print(f'Chose {recent_chosen_count} (/{self.config.recent_count}) recent & {old_chosen_count} (/{self.config.old_count}) old')
+    print(f'Chose {chosen_count} (/{self.config.output_count}) images')

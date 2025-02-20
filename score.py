@@ -41,22 +41,10 @@ def main() -> None:
       help='Minimum score for images to be used (default: -2)',
   )
   parser.add_argument(
-      '--recent-days',
-      type=int,
-      default=400,
-      help='Number of days to consider a file recent (default: 400)',
-  )
-  parser.add_argument(
       '--output-count',
       type=int,
       default=100,
       help='Number of images to output (default: 100)',
-  )
-  parser.add_argument(
-      '--recent-percent',
-      type=float,
-      default=60,
-      help='Percentage of output images to be recent (default: 60)',
   )
   parser.add_argument(
       '--apply',
@@ -111,16 +99,12 @@ def main() -> None:
   )
 
   args = parser.parse_args()
-  recent_count = int(args.output_count * args.recent_percent / 100)
-  old_count = args.output_count - recent_count
   config = Config(
       input_dir=args.input_dir,
       output_dir=args.output_dir,
       max_images=args.max_images,
       minimum_score=args.minimum_score,
-      recent_delta=datetime.timedelta(days=args.recent_days),
-      recent_count=recent_count,
-      old_count=old_count,
+      output_count=args.output_count,
       apply=args.apply,
       crop_size=(args.crop_width, args.crop_height) if args.crop else None,
       latlng_precision=args.latlng_precision,

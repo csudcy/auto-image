@@ -10,9 +10,7 @@ class Config:
   output_dir: pathlib.Path
   max_images: Optional[int]
   minimum_score: float
-  recent_delta: datetime.timedelta
-  recent_count: int
-  old_count: int
+  output_count: int
   apply: bool
   crop_size: Optional[tuple[int, int]]
   latlng_precision: int

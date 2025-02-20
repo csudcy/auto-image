@@ -100,11 +100,6 @@ document.addEventListener('DOMContentLoaded', function() {
           //     title: 'Centre',
           // },
           // {
-          //     data: 'is_recent',
-          //     title: 'Recent?',
-          //     render: render_bool,
-          // },
-          // {
           //     data: 'scores',
           //     title: 'Scores',
           // },

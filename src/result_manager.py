@@ -44,7 +44,6 @@ class Result:
   # Recalculated each time
   group_index: Optional[int] = None
   is_chosen: bool = False
-  is_recent: bool = False
   location: Optional[str] = None
   path: Optional[pathlib.Path] = None
   taken: Optional[datetime.datetime] = None
@@ -122,7 +121,6 @@ class Result:
         'taken': taken,
         'total': self.total,
         'group_index': self.group_index,
-        'is_recent': self.is_recent,
         'is_chosen': self.is_chosen,
     })
     return output
