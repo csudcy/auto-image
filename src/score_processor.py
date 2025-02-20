@@ -262,7 +262,7 @@ class Scorer:
     used_groups = []
     chosen_count = 0
     for result in results_list:
-      if any((
+      if result.include_override != True and any((
           # This image doesn't exist
           result.path is None,
           # This image doesn't score enough
