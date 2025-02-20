@@ -82,13 +82,6 @@ def main() -> None:
       help='The height to crop images to',
   )
   parser.add_argument(
-      '--exclude-date',
-      type=lambda s: datetime.datetime.strptime(s, '%Y%m%d').date(),
-      action='append',
-      dest='exclude_dates',
-      help='Any dates which should be excluded from being output (YYYYMMDD)',
-  )
-  parser.add_argument(
       '--latlng-precision',
       type=int,
       default=4,
@@ -131,7 +124,6 @@ def main() -> None:
       old_count=old_count,
       apply=args.apply,
       crop_size=(args.crop_width, args.crop_height) if args.crop else None,
-      exclude_dates=args.exclude_dates or [],
       latlng_precision=args.latlng_precision,
       tesser_path=args.tesser_path,
       ocr_coverage_threshold=args.ocr_coverage_threshold,

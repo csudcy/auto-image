@@ -15,7 +15,6 @@ class Config:
   old_count: int
   apply: bool
   crop_size: Optional[tuple[int, int]]
-  exclude_dates: list[datetime.datetime]
   latlng_precision: int
   tesser_path: str
   ocr_coverage_threshold: float

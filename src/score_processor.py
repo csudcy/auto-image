@@ -271,10 +271,6 @@ class Scorer:
       else:
         result.is_recent = False
 
-      # Check if this date is excluded
-      if result.taken and result.taken.date() in self.config.exclude_dates:
-        result.include_override = False
-
       if any((
           # This image doesn't exist
           result.path is None,
