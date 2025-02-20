@@ -3,7 +3,6 @@ import datetime
 import pathlib
 
 from src import geocode_manager
-from src import html_generator
 from src import organiser
 from src import result_manager
 from src import score_processor
@@ -136,7 +135,6 @@ def main() -> None:
   scorer.process()
   groups = scorer.find_groups()
   scorer.update_chosen()
-  html_generator.generate(config, result_set, groups)
   result_set.save()
   organiser.process(config, result_set)
   if args.serve:
