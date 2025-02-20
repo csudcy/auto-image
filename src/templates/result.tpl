@@ -11,6 +11,13 @@
       </div>
     </a>
   </span>
+  <span class="grid">
+    <a target="_blank" href="/image/cropped/{{ result.file_id }}">
+      <div class="image-thumbnail large" title="{{ result.file_id }}">
+        <img src="/image/cropped/{{ result.file_id }}"/>
+      </div>
+    </a>
+  </span>
   <table>
     <tr>
       <th>Chosen?</th>

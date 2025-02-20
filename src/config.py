@@ -29,6 +29,7 @@ class Config:
   font_outline_width: int = 3
   font_outline_colour: tuple[int, int, int] = (0, 0, 0)
   taken_format: str = '%B, %Y'
+  output_quality: int = 95
 
   @property
   def font(self) -> ImageFont:

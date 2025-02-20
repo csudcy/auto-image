@@ -43,7 +43,7 @@ def process(
       result = chosen_results[filename]
       output_path = config.output_dir / filename
       cropped = result.get_cropped(config)
-      cropped.save(output_path, quality=95)
+      cropped.save(output_path, quality=config.output_quality)
       if index % 20 == 0:
         print(f'  Copied {index}...')
   else:

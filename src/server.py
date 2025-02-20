@@ -1,4 +1,5 @@
 from http import client
+from io import BytesIO
 import math
 import os
 
@@ -9,7 +10,6 @@ from src.config import Config
 
 # TODO:
 # - Change group page to use repeated result detail page?
-# - Show cropped/named version
 # - Add more filtering:
 #   - Date (range?)
 #   - Score (range?)
@@ -17,7 +17,6 @@ from src.config import Config
 #   - Include ovverride setting
 #   - Location name includes
 #   - ...
-# - Thumbnail endpoint?
 # - Allow process/apply from UI
 # - Don't process when starting server
 # - Allow address to be overridden (per-image or per-latlng)
@@ -121,6 +120,18 @@ def serve(
     result = result_set.results.get(file_id)
     if result and result.path:
       return flask.send_file(result.path)
+    else:
+      return flask.abort(client.NOT_FOUND)
+
+  @app.route('/image/cropped/<file_id>')
+  def image_cropped_handler(file_id: str):
+    result = result_set.results.get(file_id)
+    if result and result.path:
+      cropped = result.get_cropped(config)
+      img_io = BytesIO()
+      cropped.save(img_io, 'JPEG', quality=config.output_quality)
+      img_io.seek(0)
+      return flask.send_file(img_io, mimetype='image/jpeg')
     else:
       return flask.abort(client.NOT_FOUND)
 
