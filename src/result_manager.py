@@ -9,6 +9,8 @@ from typing import Optional
 
 import cachetools
 from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageOps
 
 from src.config import Config
 
@@ -20,7 +22,7 @@ DATETIME_RE = r'.*(\d{4}-?\d{2}-?\d{2}[ _]\d{2}.?\d{2}.?\d{2})'
 DATE_RE = r'.*(\d{4}-?\d{2}-?\d{2})'
 DATETIME_FORMAT = '%Y%m%d %H%M%S'
 
-IMAGE_CACHE = cachetools.LRUCache(maxsize=16)
+IMAGE_CACHE = cachetools.LRUCache(maxsize=128)
 
 @dataclasses.dataclass
 class LatLon:
@@ -132,6 +134,38 @@ class Result:
     elif self.include_override == False:
       self.is_chosen = False
     # Otherwise, this will need to be updated next time processing is done
+
+  def get_cropped(self, config: Config) -> None:
+    image_width, image_height = self.image.size
+    if self.centre:
+      centre = (self.centre[0] / image_width, self.centre[1] / image_height)
+    else:
+      centre = (0.5, 0.5)
+    cropped = ImageOps.fit(self.image, (config.crop_width, config.crop_height), centering=centre)
+
+    draw = ImageDraw.Draw(cropped)
+    def _draw_text(x: int, y: int, text: str) -> None:
+      # Text & outline
+      draw.text(
+          (x, y),
+          text,
+          config.font_colour,
+          font=config.font,
+          stroke_width=config.font_outline_width,
+          stroke_fill=config.font_outline_colour,
+      )
+
+    # Add location
+    text_top = config.crop_height + config.text_offset_y
+    if self.location:
+      _draw_text(config.text_offset_x, text_top, self.location)
+    if self.taken:
+      taken_text = self.taken.strftime(config.taken_format)
+      taken_size = int(draw.textlength(taken_text, font=config.font))
+      taken_x = config.crop_width - taken_size - 2 * config.text_offset_x
+      _draw_text(taken_x, text_top, taken_text)
+
+    return cropped
 
 
 @cachetools.cached(IMAGE_CACHE)

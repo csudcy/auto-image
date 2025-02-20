@@ -8,11 +8,18 @@ from src import result_manager
 from src.config import Config
 
 # TODO:
-# - Allow process/apply from UI
-# - Don't process when starting server
-# - Add more filtering (date range, number range, OCR text, include ovverride, etc.)
 # - Change group page to use repeated result detail page?
 # - Show cropped/named version
+# - Add more filtering:
+#   - Date (range?)
+#   - Score (range?)
+#   - OCR text contains
+#   - Include ovverride setting
+#   - Location name includes
+#   - ...
+# - Thumbnail endpoint?
+# - Allow process/apply from UI
+# - Don't process when starting server
 # - Allow address to be overridden (per-image or per-latlng)
 # - Allow crop to be changed
 # - Re-generate cropped/captioned image if crop/addres changes

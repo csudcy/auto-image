@@ -9,8 +9,7 @@
   "scripts": {
     "poetry:install": "./scripts/poetry_install.sh",
     "poetry:update": "./scripts/poetry_update.sh",
-    "score:dropbox" : "./scripts/score_dropbox_base.sh \"/Users/csudcy/Library/CloudStorage/Dropbox/Camera Best\"",
-    "score:dropbox-crop" : "./scripts/score_dropbox_base.sh \"/Users/csudcy/Library/CloudStorage/Dropbox/Camera Crop\" --crop",
+    "score:dropbox" : "./scripts/score_dropbox_base.sh \"/Users/csudcy/Library/CloudStorage/Dropbox/Camera Crop\"",
     "score:local" : "./scripts/poetry_run.sh python3 score.py images/ images_chosen/",
     "score" : "./scripts/poetry_run.sh python3 score.py"
   },

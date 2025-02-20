@@ -52,11 +52,6 @@ def main() -> None:
       help='Copy the best files into output directory (default: False)',
   )
   parser.add_argument(
-      '--crop',
-      action='store_true',
-      help='If set, crop the output image around the average of keypoints',
-  )
-  parser.add_argument(
       '--crop-width',
       type=int,
       default=1080,
@@ -106,7 +101,8 @@ def main() -> None:
       minimum_score=args.minimum_score,
       output_count=args.output_count,
       apply=args.apply,
-      crop_size=(args.crop_width, args.crop_height) if args.crop else None,
+      crop_width=args.crop_width,
+      crop_height=args.crop_height,
       latlng_precision=args.latlng_precision,
       tesser_path=args.tesser_path,
       ocr_coverage_threshold=args.ocr_coverage_threshold,
