@@ -115,20 +115,6 @@ class Result:
         'scores': self.scores,
     }
 
-  def to_api_dict(self) -> dict:
-    output = self.to_dict()
-    if self.taken:
-      taken = self.taken.isoformat()
-    else:
-      taken = None
-    output.update({
-        'taken': taken,
-        'total': self.total,
-        'group_index': self.group_index,
-        'is_chosen': self.is_chosen,
-    })
-    return output
-
   def update_include_override(self, include_override: Optional[bool]) -> None:
     self.include_override = include_override
     if self.include_override == True:

@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from http import client
 from io import BytesIO
 import math
@@ -17,9 +18,9 @@ from src.config import Config
 #   - Location name includes
 #   - ...
 # - Sorting?
-# - Replace table view with a stats page
 # - Allow process/apply from UI
 # - Don't process when starting server
+# - Map view
 # - Allow address to be overridden (per-image or per-latlng)
 # - Allow crop to be changed
 # - Re-generate cropped/captioned image if crop/address changes
@@ -29,6 +30,12 @@ INCLUDE_OVERRIDE_VALUES = {
     'false': False,
     'none': None,
 }
+
+
+@dataclass
+class Counts:
+  total: int = 0
+  chosen: int = 0
 
 
 def serve(
@@ -41,7 +48,39 @@ def serve(
 
   @app.route('/')
   def index():
-    return flask.render_template('index.tpl')
+    total_counts = Counts()
+    grouped_counts = Counts()
+    ungrouped_counts = Counts()
+    score_counts = {}
+    result: result_manager.Result
+    for result in result_set.results.values():
+      total = round(result.total)
+      if total not in score_counts:
+        score_counts[total] = Counts()
+
+      score_counts[total].total += 1
+      total_counts.total += 1
+      if result.is_chosen:
+        score_counts[total].chosen += 1
+        total_counts.chosen += 1
+
+      if result.group_index is None:
+        ungrouped_counts.total += 1
+        if result.is_chosen:
+          ungrouped_counts.chosen += 1
+      else:
+        grouped_counts.total += 1
+        if result.is_chosen:
+          grouped_counts.chosen += 1
+
+    return flask.render_template(
+        'index.tpl',
+        total_counts=total_counts,
+        group_count=len(groups),
+        grouped_counts=grouped_counts,
+        ungrouped_counts=ungrouped_counts,
+        score_counts=score_counts,
+    )
 
   @app.route('/grid')
   def grid():
@@ -120,11 +159,6 @@ def serve(
       )
     else:
       return flask.abort(client.NOT_FOUND)
-
-  @app.route('/api/results')
-  def results_handler():
-    results = [result.to_api_dict() for result in result_set.results.values()]
-    return flask.jsonify(results)
 
   @app.route('/image/<file_id>')
   def image_handler(file_id: str):
