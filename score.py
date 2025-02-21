@@ -1,5 +1,4 @@
 import argparse
-import datetime
 import pathlib
 
 from src import geocode_manager
@@ -8,12 +7,6 @@ from src import result_manager
 from src import score_processor
 from src import server
 from src.config import Config
-
-# Copy chosen files to another directory
-# Remove non-chosen files
-# Check for very similar photos & choose the best one (before choosing top)
-# Choose seasonal photos from previous years?
-# Check if image will look good at specific zoom/crop
 
 
 def main() -> None:
@@ -110,15 +103,16 @@ def main() -> None:
   )
 
   result_set = result_manager.ResultSet(config)
-  geocoder = geocode_manager.GeoCoder(config)
-  scorer = score_processor.Scorer(config, result_set, geocoder)
-  scorer.process()
-  groups = scorer.find_groups()
-  scorer.update_chosen()
-  result_set.save()
-  organiser.process(config, result_set)
   if args.serve:
-    server.serve(config, result_set, groups)
+    server.serve(config, result_set)
+  else:
+    geocoder = geocode_manager.GeoCoder(config)
+    scorer = score_processor.Scorer(config, result_set, geocoder)
+    scorer.process()
+    scorer.find_groups()
+    scorer.update_chosen()
+    result_set.save()
+    organiser.process(config, result_set)
 
 
 if __name__ == '__main__':

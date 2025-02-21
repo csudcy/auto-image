@@ -10,6 +10,8 @@ from src import result_manager
 from src.config import Config
 
 # TODO:
+# - Move result set save to a thread (quicker including/excluding, won't try to save twice at the same time)
+# - Or move to sqlite?
 # - More filtering:
 #   - Date (range?)
 #   - Score (range?)
@@ -19,7 +21,7 @@ from src.config import Config
 #   - ...
 # - Sorting?
 # - Allow process/apply from UI
-# - Don't process when starting server
+# - Display (and set?) config through UI
 # - Map view
 # - Allow address to be overridden (per-image or per-latlng)
 # - Allow crop to be changed
@@ -41,7 +43,6 @@ class Counts:
 def serve(
     config: Config,
     result_set: result_manager.ResultSet,
-    groups: list[list[result_manager.Result]],
 ) -> None:
   os.environ['FLASK_DEBUG'] = 'True'
   app = flask.Flask(__name__)
@@ -49,6 +50,7 @@ def serve(
   @app.route('/')
   def index():
     total_counts = Counts()
+    group_indexes = set()
     grouped_counts = Counts()
     ungrouped_counts = Counts()
     score_counts = {}
@@ -69,6 +71,7 @@ def serve(
         if result.is_chosen:
           ungrouped_counts.chosen += 1
       else:
+        group_indexes.add(result.group_index)
         grouped_counts.total += 1
         if result.is_chosen:
           grouped_counts.chosen += 1
@@ -76,7 +79,7 @@ def serve(
     return flask.render_template(
         'index.tpl',
         total_counts=total_counts,
-        group_count=len(groups),
+        group_count=len(group_indexes),
         grouped_counts=grouped_counts,
         ungrouped_counts=ungrouped_counts,
         score_counts=score_counts,

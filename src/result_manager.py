@@ -39,19 +39,19 @@ class Result:
 
   # Loaded from dict
   centre: Optional[tuple[float, float]] = None
+  group_index: Optional[int] = None
   include_override: Optional[bool] = None
+  is_chosen: bool = False
   lat_lon: Optional[LatLon] = None
   lat_lon_extracted: bool = False
+  location: Optional[str] = None
   ocr_coverage: Optional[float] = None
   ocr_text: Optional[str] = None
+  path: Optional[pathlib.Path] = None
+  total: float = 0
 
   # Recalculated each time
-  group_index: Optional[int] = None
-  is_chosen: bool = False
-  location: Optional[str] = None
-  path: Optional[pathlib.Path] = None
   taken: Optional[datetime.datetime] = None
-  total: float = 0
 
   @property
   def image(self) -> Image.Image:
@@ -78,41 +78,50 @@ class Result:
 
   @classmethod
   def from_dict(cls, data: dict) -> 'Result':
-    file_id = data['file_id']
-    if lat_lon_data := data.get('lat_lon'):
+    if lat_lon_data := data['lat_lon']:
       lat_lon = LatLon(**lat_lon_data)
-      lat_lon_extracted = True
     else:
       lat_lon = None
-      lat_lon_extracted = data.get('lat_lon_extracted') or False
+
+    if path_data := data['path']:
+      # pathlib.Path
+      path_potential = pathlib.Path(path_data)
+      if path_potential.exists():
+        path = path_potential
+    else:
+      path = None
+
     return Result(
-        centre=data.get('centre'),
-        include_override=data.get('include_override'),
+        centre=data['centre'],
         file_id=data['file_id'],
-        lat_lon_extracted=lat_lon_extracted,
+        group_index=data['group_index'],
+        include_override=data['include_override'],
+        is_chosen=data['is_chosen'],
         lat_lon=lat_lon,
-        ocr_coverage=data.get('ocr_coverage'),
-        ocr_text=data.get('ocr_text'),
+        lat_lon_extracted=data['lat_lon_extracted'],
+        ocr_coverage=data['ocr_coverage'],
+        ocr_text=data['ocr_text'],
+        path=path,
         scores=data['scores'],
-        taken=Result.parse_filename(file_id),
+        taken=Result.parse_filename(data['file_id']),
+        total=data['total'],
     )
 
   def to_dict(self) -> dict:
-    if self.lat_lon:
-      lat_lon = dataclasses.asdict(self.lat_lon)
-    else:
-      lat_lon = None
     return {
         'centre': self.centre,
-        'include_override': self.include_override,
         'file_id': self.file_id,
+        'group_index': self.group_index,
+        'include_override': self.include_override,
+        'is_chosen': self.is_chosen,
+        'lat_lon': dataclasses.asdict(self.lat_lon) if self.lat_lon else None,
         'lat_lon_extracted': self.lat_lon_extracted,
-        'lat_lon': lat_lon,
-        # Only save location name so we can see it in the JSON
         'location': self.location,
         'ocr_coverage': self.ocr_coverage,
         'ocr_text': self.ocr_text,
+        'path': str(self.path) if self.path else None,
         'scores': self.scores,
+        'total': self.total,
     }
 
   def update_include_override(self, include_override: Optional[bool]) -> None:

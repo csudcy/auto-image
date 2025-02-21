@@ -135,8 +135,9 @@ class Scorer:
   def _update_score(self, path: pathlib.Path, tesser_api: Optional[tesserocr.PyTessBaseAPI]) -> None:
     # Get the result for this path
     result = self.result_set.get_result(path.name)
+    path = path.absolute()
 
-    if result.path:
+    if result.path and result.path != path:
       print('\n'.join((
           f'  Duplicate file: {path.name}',
           f'    -> {result.path}',
@@ -145,7 +146,7 @@ class Scorer:
       return
 
     self._overall_processed += 1
-    result.path = path.absolute()
+    result.path = path
 
     # Find the centre (when necessary)
     if not result.centre:
@@ -237,6 +238,9 @@ class Scorer:
         self.result_set.results.values(),
         key=lambda result: result.taken or datetime.datetime.min,
     )
+    # Reset all groups
+    for result in results_list:
+      result.group_index = None
     groups = []
     previous_result: result_manager.Result = results_list[0]
     result: result_manager.Result
