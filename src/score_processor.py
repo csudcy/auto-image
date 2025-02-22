@@ -1,6 +1,8 @@
 
 # Based on https://pypi.org/project/open-clip-torch/
 
+from dataclasses import dataclass
+from dataclasses import field
 import datetime
 import pathlib
 import statistics
@@ -48,6 +50,32 @@ INCLUDE_OVERRIDE_ORDER = {
 }
 
 
+@dataclass
+class ProcessStats:
+  config: Config
+  file_count: int
+  next_time: float = field(default_factory=time.perf_counter)
+  start_time: float = field(default_factory=time.perf_counter)
+  last_index: int = 0
+  last_time: float = field(default_factory=time.perf_counter)
+
+  def output(self, index: int) -> None:
+    new_time = time.perf_counter()
+
+    diff_processed = index - self.last_index
+    diff_time = new_time - self.last_time
+    if diff_processed and diff_time:
+      processed_per_minute = diff_processed / (diff_time / 60)
+    else:
+      processed_per_minute = 0
+
+    wall_time = new_time - self.start_time
+    self.config.log(f'Done {index} / {self.file_count} files (scored {index} in {wall_time:.01f}s, {processed_per_minute:.01f} per minute)')
+
+    self.last_index = index
+    self.last_time = new_time
+
+
 class Scorer:
 
   def __init__(
@@ -60,13 +88,6 @@ class Scorer:
     self.result_set = result_set
     self.geocoder = geocoder
 
-    self._all_files = list(self.config.input_dir.rglob('*'))
-    self._file_count = len(self._all_files)
-    self._overall_processed = 0
-    self._overall_time = time.perf_counter()
-    self._stats_last_processed = 0
-    self._stats_last_time = time.perf_counter()
-
     self._model = None
     self._preprocess = None
     self._text_features = None
@@ -74,15 +95,23 @@ class Scorer:
     self._orb = None
 
   def process(self) -> None:
+    self.process_files()
+    self.find_groups()
+    self.update_chosen()
+    self.result_set.save()
+
+  def process_files(self) -> None:
     self.config.log('Processing files...')
-    next_time = self._overall_time
+    all_files = list(self.config.input_dir.rglob('*'))
+    next_time = 0
+    stats = ProcessStats(config=self.config, file_count=len(all_files))
 
     if self.config.tesser_path:
       tesser_api = tesserocr.PyTessBaseAPI(path=self.config.tesser_path)
     else:
       tesser_api = None
 
-    for index, path in enumerate(self._all_files):
+    for index, path in enumerate(all_files):
       if self.config.max_images and index >= self.config.max_images:
         self.config.log('Hit limit; stopping...')
         break
@@ -100,7 +129,7 @@ class Scorer:
         continue
 
       if time.perf_counter() >= next_time:
-        self._show_stats(index)
+        stats.output(index)
         self.result_set.save()
         self.geocoder.save()
         next_time = time.perf_counter() + 5
@@ -110,27 +139,11 @@ class Scorer:
     if tesser_api:
       tesser_api.End()
 
-    self._show_stats(index)
+    stats.output(index)
     self.result_set.save()
     self.geocoder.save()
 
     self.config.log('Processing done!')
-
-  def _show_stats(self, index: int) -> None:
-    new_time = time.perf_counter()
-
-    diff_processed = self._overall_processed - self._stats_last_processed
-    diff_time = new_time - self._stats_last_time
-    if diff_processed and diff_time:
-      processed_per_minute = diff_processed / (diff_time / 60)
-    else:
-      processed_per_minute = 0
-
-    wall_time = new_time - self._overall_time
-    self.config.log(f'Done {index} / {self._file_count} files (scored {self._overall_processed} in {wall_time:.01f}s, {processed_per_minute:.01f} per minute)')
-
-    self._stats_last_processed = self._overall_processed
-    self._stats_last_time = new_time
 
   def _update_score(self, path: pathlib.Path, tesser_api: Optional[tesserocr.PyTessBaseAPI]) -> None:
     # Get the result for this path
@@ -145,7 +158,6 @@ class Scorer:
       )))
       return
 
-    self._overall_processed += 1
     result.path = path
 
     # Find the centre (when necessary)

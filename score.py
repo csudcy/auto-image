@@ -107,9 +107,6 @@ def main() -> None:
     geocoder = geocode_manager.GeoCoder(config)
     scorer = score_processor.Scorer(config, result_set, geocoder)
     scorer.process()
-    scorer.find_groups()
-    scorer.update_chosen()
-    result_set.save()
     if args.apply:
       scorer.update_files()
     else:
