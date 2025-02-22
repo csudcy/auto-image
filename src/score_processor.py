@@ -74,7 +74,7 @@ class Scorer:
     self._orb = None
 
   def process(self) -> None:
-    print('Processing files...')
+    self.config.log('Processing files...')
     next_time = self._overall_time
 
     if self.config.tesser_path:
@@ -84,7 +84,7 @@ class Scorer:
 
     for index, path in enumerate(self._all_files):
       if self.config.max_images and index >= self.config.max_images:
-        print('Hit limit; stopping...')
+        self.config.log('Hit limit; stopping...')
         break
 
       if not path.is_file():
@@ -96,7 +96,7 @@ class Scorer:
       extension = path.suffix.lower().lstrip('.')
       if extension not in EXTENSIONS:
         if extension not in HIDE_SKIP_EXTENSIONS:
-          print(f'  Skipping non-image: {path.name}')
+          self.config.log(f'  Skipping non-image: {path.name}')
         continue
 
       if time.perf_counter() >= next_time:
@@ -114,7 +114,7 @@ class Scorer:
     self.result_set.save()
     self.geocoder.save()
 
-    print('Processing done!')
+    self.config.log('Processing done!')
 
   def _show_stats(self, index: int) -> None:
     new_time = time.perf_counter()
@@ -127,7 +127,7 @@ class Scorer:
       processed_per_minute = 0
 
     wall_time = new_time - self._overall_time
-    print(f'Done {index} / {self._file_count} files (scored {self._overall_processed} in {wall_time:.01f}s, {processed_per_minute:.01f} per minute)')
+    self.config.log(f'Done {index} / {self._file_count} files (scored {self._overall_processed} in {wall_time:.01f}s, {processed_per_minute:.01f} per minute)')
 
     self._stats_last_processed = self._overall_processed
     self._stats_last_time = new_time
@@ -138,7 +138,7 @@ class Scorer:
     path = path.absolute()
 
     if result.path and result.path != path:
-      print('\n'.join((
+      self.config.log('\n'.join((
           f'  Duplicate file: {path.name}',
           f'    -> {result.path}',
           f'    -> {path}',
@@ -178,7 +178,7 @@ class Scorer:
       try:
         result.scores = self._score(result.image)
       except Exception as ex:
-        print(f'  Error scoring {result.path.name} - {ex}')
+        self.config.log(f'  Error scoring {result.path.name} - {ex}')
         return
 
     # Calculate the total
@@ -233,7 +233,7 @@ class Scorer:
       self,
       maximum_delta: datetime.timedelta = datetime.timedelta(seconds=8),
   ) -> list[list[result_manager.Result]]:
-    print('Grouping images...')
+    self.config.log('Grouping images...')
     results_list = sorted(
         self.result_set.results.values(),
         key=lambda result: result.taken or datetime.datetime.min,
@@ -254,7 +254,7 @@ class Scorer:
           groups[-1].append(result)
           result.group_index = previous_result.group_index
       previous_result = result
-    print(f'Found {len(groups)} group(s)!')
+    self.config.log(f'Found {len(groups)} group(s)!')
     return groups
 
   def update_chosen(self) -> None:
@@ -288,4 +288,4 @@ class Scorer:
         chosen_count += 1
       if result.is_chosen and result.group_index is not None:
         used_groups.append(result.group_index)
-    print(f'Chose {chosen_count} (/{self.config.output_count}) images')
+    self.config.log(f'Chose {chosen_count} (/{self.config.output_count}) images')

@@ -61,14 +61,14 @@ class Result:
       raise Exception(f'Can\'t get image when path is not set! {self.file_id}')
 
   @classmethod
-  def parse_filename(cls, file_id: str) -> Optional[datetime.datetime]:
+  def parse_filename(cls, file_id: str, config: Config) -> Optional[datetime.datetime]:
     # Parse the datetime from the filename
     if match := re.match(DATETIME_RE, file_id):
       dt = match.group(1)
     elif match := re.match(DATE_RE, file_id):
       dt = f'{match.group(1)} 000000'
     else:
-      print(f'  Unable to parse date: {file_id}')
+      config.log(f'  Unable to parse date: {file_id}')
       return None
 
     dt = dt.replace('-', '')
@@ -77,7 +77,7 @@ class Result:
     return datetime.datetime.strptime(dt, DATETIME_FORMAT)
 
   @classmethod
-  def from_dict(cls, data: dict) -> 'Result':
+  def from_dict(cls, data: dict, config: Config) -> 'Result':
     if lat_lon_data := data['lat_lon']:
       lat_lon = LatLon(**lat_lon_data)
     else:
@@ -103,7 +103,7 @@ class Result:
         ocr_text=data['ocr_text'],
         path=path,
         scores=data['scores'],
-        taken=Result.parse_filename(data['file_id']),
+        taken=Result.parse_filename(data['file_id'], config),
         total=data['total'],
     )
 
@@ -205,7 +205,7 @@ class ResultSet:
         data = data_list
       
       for item in data:
-        result = Result.from_dict(item)
+        result = Result.from_dict(item, config)
         self.results[result.file_id] = result
 
   def save(self) -> None:
@@ -219,6 +219,6 @@ class ResultSet:
       self.results[file_id] = Result(
           file_id=file_id,
           scores={},
-          taken=Result.parse_filename(file_id),
+          taken=Result.parse_filename(file_id, self.config),
       )
     return self.results[file_id]

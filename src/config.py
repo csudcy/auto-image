@@ -1,6 +1,6 @@
 import dataclasses
 import pathlib
-from typing import Optional
+from typing import Callable, Optional
 
 from PIL import ImageFont
 
@@ -19,6 +19,8 @@ class Config:
   tesser_path: str
   ocr_coverage_threshold: float
   ocr_text_threshold: int
+
+  log: Callable[[str], None] = print
 
   # TODO: Add these to CLI?
   font_size: int = 50

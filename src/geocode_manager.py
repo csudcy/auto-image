@@ -69,10 +69,9 @@ class GeoCodeResult:
   lon: float
   data: dict
 
-  @property
-  def name(self) -> Optional[str]:
+  def get_name(self, config: Config) -> Optional[str]:
     if 'address' not in self.data:
-      print('\n'.join((
+      config.log('\n'.join((
           f'Missing address:',
           f'({self.lat}, {self.lon})',
           f'{self.data}',
@@ -180,4 +179,4 @@ class GeoCoder:
           lon=lon_dp,
           data=data,
       )
-    return self.results[key].name
+    return self.results[key].get_name(self.config)
