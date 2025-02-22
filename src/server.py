@@ -14,6 +14,7 @@ from src import score_processor
 from src.config import Config
 
 # TODO:
+# - Move to UV
 # - Make log check smarter (check more often for x time after a log was added)
 # - More filtering:
 #   - Date (range?)
@@ -24,9 +25,16 @@ from src.config import Config
 #   - ...
 # - Sorting?
 # - Map view
+# - Improve task queuing & tracking (list of tasks, progress bar per task, ...)
+# - Move to just a server?
+#   - Pass in output directory
+#   - Make source directories a list (default empty)
+#   - Use default config for everything else
+#   - Config needs to be editable through UI & saved somewhere
 # - Allow address to be overridden (per-image or per-latlng)
 # - Allow crop to be changed
 # - Re-generate cropped/captioned image if crop/address changes
+# - Force re-generate all exported images
 # - Move result set (& config) to sqlite?
 # - Display (and set?) config through UI
 
