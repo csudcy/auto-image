@@ -99,6 +99,7 @@ class Result:
         is_chosen=data['is_chosen'],
         lat_lon=lat_lon,
         lat_lon_extracted=data['lat_lon_extracted'],
+        location=data['location'],
         ocr_coverage=data['ocr_coverage'],
         ocr_text=data['ocr_text'],
         path=path,

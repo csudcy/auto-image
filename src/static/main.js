@@ -1,5 +1,5 @@
 function setupLogging() {
-  const updateInveral = 20 * 1000;
+  const updateInveral = 5 * 1000;
   let nextIndex = 0;
 
   const table = document.getElementById('logs-table');

@@ -14,6 +14,7 @@ from src import score_processor
 from src.config import Config
 
 # TODO:
+# - Make log check smarter (check more often for x time after a log was added)
 # - More filtering:
 #   - Date (range?)
 #   - Score (range?)

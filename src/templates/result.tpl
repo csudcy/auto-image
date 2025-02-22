@@ -99,7 +99,7 @@
             </tr>
             <tr>
               <th>Total Score</th>
-              <td>{{ result.total }}</td>
+              <td>{{ result.total | round(2) }}</td>
             </tr>
 
             <tr>
