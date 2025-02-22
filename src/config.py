@@ -12,7 +12,6 @@ class Config:
   max_images: Optional[int]
   minimum_score: float
   output_count: int
-  apply: bool
   crop_width: int
   crop_height: int
   latlng_precision: int

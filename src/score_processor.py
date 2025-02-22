@@ -289,3 +289,56 @@ class Scorer:
       if result.is_chosen and result.group_index is not None:
         used_groups.append(result.group_index)
     self.config.log(f'Chose {chosen_count} (/{self.config.output_count}) images')
+
+  def compare_files(self) -> tuple[set[pathlib.Path], set[str]]:
+    self.config.log('Comparing files...')
+    # Find all files in the target folder
+    self.config.output_dir.mkdir(parents=True, exist_ok=True)
+    existing_path_by_file_id = {
+        file.name: file
+        for file in self.config.output_dir.iterdir()
+    }
+    existing_file_id_set = set(existing_path_by_file_id.keys())
+
+    # Get all chosen files
+    chosen_file_id_set = set((
+        file_id
+        for file_id, result in self.result_set.results.items()
+        if result.is_chosen
+    ))
+
+    # Work out what files need to be added/removed
+    file_ids_to_add = chosen_file_id_set - existing_file_id_set
+    file_ids_to_remove = existing_file_id_set - chosen_file_id_set
+    paths_to_remove = [
+        existing_path_by_file_id[file_id]
+        for file_id in file_ids_to_remove
+    ]
+
+    self.config.log(f'File operations: {len(file_ids_to_add)} add, {len(file_ids_to_remove)} remove')
+
+    return paths_to_remove, file_ids_to_add
+
+  def update_files(self) -> None:
+    paths_to_remove, file_ids_to_add = self.compare_files()
+
+    self.config.log('Updating files...')
+
+    # Remove old files
+    self.config.log(f'Removing {len(paths_to_remove)} old files...')
+    for index, path in enumerate(paths_to_remove):
+      path.unlink()
+      if index % 20 == 0:
+        self.config.log(f'  Removed {index}...')
+    
+    # Copy new files
+    self.config.log(f'Copying {len(file_ids_to_add)} new files...')
+    for index, file_id in enumerate(file_ids_to_add):
+      result = self.result_set.get_result(file_id)
+      output_path = self.config.output_dir / file_id
+      cropped = result.get_cropped(self.config)
+      cropped.save(output_path, quality=self.config.output_quality)
+      if index % 20 == 0:
+        self.config.log(f'  Copied {index}...')
+
+    self.config.log('Updating done!')

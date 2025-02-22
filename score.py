@@ -2,7 +2,6 @@ import argparse
 import pathlib
 
 from src import geocode_manager
-from src import organiser
 from src import result_manager
 from src import score_processor
 from src import server
@@ -93,7 +92,6 @@ def main() -> None:
       max_images=args.max_images,
       minimum_score=args.minimum_score,
       output_count=args.output_count,
-      apply=args.apply,
       crop_width=args.crop_width,
       crop_height=args.crop_height,
       latlng_precision=args.latlng_precision,
@@ -112,7 +110,11 @@ def main() -> None:
     scorer.find_groups()
     scorer.update_chosen()
     result_set.save()
-    organiser.process(config, result_set)
+    if args.apply:
+      scorer.update_files()
+    else:
+      scorer.compare_files()
+      config.log('Skipped applying file changes; use --apply to apply changes')
 
 
 if __name__ == '__main__':
