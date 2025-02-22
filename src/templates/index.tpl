@@ -52,4 +52,15 @@
       {% endfor %}
     </tbody>
   </table>
+  <h1>Processing</h1>
+  <table border="1" id="logs-table">
+    <thead>
+      <tr>
+        <th>Timestamp</th>
+        <th>Message</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
 {% endblock %}

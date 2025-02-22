@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from dataclasses import field
+import datetime
 from http import client
 from io import BytesIO
 import math
@@ -7,6 +9,7 @@ import os
 import flask
 
 from src import result_manager
+from src import score_processor
 from src.config import Config
 
 # TODO:
@@ -40,12 +43,55 @@ class Counts:
   chosen: int = 0
 
 
+@dataclass
+class Log:
+  index: int
+  now: datetime.datetime
+  message: str
+
+
+@dataclass
+class ConfigLogger:
+  max_logs: int = 100
+  next_index: int = 0
+  logs: list[Log] = field(default_factory=list)
+
+  def add_log(self, message: str) -> None:
+    now = datetime.datetime.now()
+    print(f'{now}: {message}')
+    self.logs.append(Log(
+        index=self.next_index,
+        now=now,
+        message=message,
+    ))
+    self.next_index += 1
+    self.logs = self.logs[-self.max_logs:]
+
+  def get_logs(self, min_index: int):
+    logs = [
+        {
+            'now': log.now.strftime('%Y/%m/%d %H:%M:%S'),
+            'message': log.message,
+        }
+        for log in self.logs
+        if log.index >= min_index
+    ]
+    return {
+        'next_index': self.next_index,
+        'logs': logs,
+    }
+
+
 def serve(
     config: Config,
     result_set: result_manager.ResultSet,
 ) -> None:
   os.environ['FLASK_DEBUG'] = 'True'
   app = flask.Flask(__name__)
+
+  # Change logging to save here (and print)
+  config_logger = ConfigLogger()
+  config.log = config_logger.add_log
 
   @app.route('/')
   def index():
@@ -183,4 +229,10 @@ def serve(
     else:
       return flask.abort(client.NOT_FOUND)
 
+  @app.route('/api/logs/<int:min_index>')
+  def api_logs(min_index: int):
+    logs = config_logger.get_logs(min_index)
+    return flask.jsonify(logs)
+
+  config.log('Server started!')
   app.run()
