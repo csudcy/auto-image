@@ -14,8 +14,6 @@ from src import score_processor
 from src.config import Config
 
 # TODO:
-# - Move result set save to a thread (quicker including/excluding, won't try to save twice at the same time)
-# - Or move to sqlite?
 # - More filtering:
 #   - Date (range?)
 #   - Score (range?)
@@ -24,11 +22,12 @@ from src.config import Config
 #   - Location name includes
 #   - ...
 # - Sorting?
-# - Display (and set?) config through UI
 # - Map view
 # - Allow address to be overridden (per-image or per-latlng)
 # - Allow crop to be changed
 # - Re-generate cropped/captioned image if crop/address changes
+# - Move result set (& config) to sqlite?
+# - Display (and set?) config through UI
 
 INCLUDE_OVERRIDE_VALUES = {
     'true': True,
@@ -193,7 +192,7 @@ def serve(
       if flask.request.method == 'POST':
         include_override = INCLUDE_OVERRIDE_VALUES[flask.request.form.get('include_override')]
         result.update_include_override(include_override)
-        result_set.save()
+        action_executor.submit(result_set.save)
       return flask.render_template(
           'result.tpl',
           title=result.file_id,
@@ -216,7 +215,7 @@ def serve(
         for result in results:
           if file_id is None or file_id == result.file_id:
             result.update_include_override(include_override)
-        result_set.save()
+        action_executor.submit(result_set.save)
       return flask.render_template(
           'result.tpl',
           title=f'Group {group_index}',
