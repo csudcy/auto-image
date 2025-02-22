@@ -5,6 +5,7 @@ from http import client
 from io import BytesIO
 import math
 import os
+from concurrent.futures import ThreadPoolExecutor
 
 import flask
 
@@ -23,7 +24,6 @@ from src.config import Config
 #   - Location name includes
 #   - ...
 # - Sorting?
-# - Allow process/apply from UI
 # - Display (and set?) config through UI
 # - Map view
 # - Allow address to be overridden (per-image or per-latlng)
@@ -85,6 +85,7 @@ class ConfigLogger:
 def serve(
     config: Config,
     result_set: result_manager.ResultSet,
+    scorer: score_processor.Scorer,
 ) -> None:
   os.environ['FLASK_DEBUG'] = 'True'
   app = flask.Flask(__name__)
@@ -93,8 +94,23 @@ def serve(
   config_logger = ConfigLogger()
   config.log = config_logger.add_log
 
-  @app.route('/')
+  ACTION_FUNCS = {
+      'process': scorer.process,
+      'check': scorer.compare_files,
+      'apply': scorer.update_files,
+  }
+
+  action_executor = ThreadPoolExecutor(max_workers=1)
+
+  @app.route('/', methods=('GET', 'POST'))
   def index():
+    if flask.request.method == 'POST':
+      action = flask.request.form.get('action')
+      if action_func := ACTION_FUNCS.get(action):
+        action_executor.submit(action_func)
+      else:
+        config.log(f'Unknown action: {action}')
+
     total_counts = Counts()
     group_indexes = set()
     grouped_counts = Counts()

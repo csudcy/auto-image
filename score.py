@@ -101,11 +101,11 @@ def main() -> None:
   )
 
   result_set = result_manager.ResultSet(config)
+  geocoder = geocode_manager.GeoCoder(config)
+  scorer = score_processor.Scorer(config, result_set, geocoder)
   if args.serve:
-    server.serve(config, result_set)
+    server.serve(config, result_set, scorer)
   else:
-    geocoder = geocode_manager.GeoCoder(config)
-    scorer = score_processor.Scorer(config, result_set, geocoder)
     scorer.process()
     if args.apply:
       scorer.update_files()

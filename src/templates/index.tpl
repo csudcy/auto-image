@@ -53,6 +53,18 @@
     </tbody>
   </table>
   <h1>Processing</h1>
+  <form method="POST">
+    <a href="">Refresh</a>
+    <button type="submit" name="action" value="process">
+      Process Files
+    </button>
+    <button type="submit" name="action" value="check">
+      Check file updates
+    </button>
+    <button type="submit" name="action" value="apply">
+      Apply file updates
+    </button>
+  </form>
   <table border="1" id="logs-table">
     <thead>
       <tr>
