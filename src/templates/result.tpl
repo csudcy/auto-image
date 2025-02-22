@@ -4,25 +4,26 @@
 
 {% block content %}
   <h1>{{ title }}</h1>
-  {% if results|length > 1 %}
-    <form method="POST">
-      <button type="submit" name="include_override" value="false">
-        Exclude
-      </button>
-      <button type="submit" name="include_override" value="none">
-        Clear
-      </button>
-      <button type="submit" name="include_override" value="true">
-        Include
-      </button>
-    </form>
-  {% endif %}
+  <form method="POST">
+    {% if results|length == 1 %}
+      <input type="hidden" name="file_id" value="{{ results[0].file_id }}"/>
+    {% endif %}
+    <button type="submit" name="include_override" value="false">
+      Exclude
+    </button>
+    <button type="submit" name="include_override" value="none">
+      Clear
+    </button>
+    <button type="submit" name="include_override" value="true">
+      Include
+    </button>
+  </form>
 
   <table>
     {% for result in results %}
-      <tr>
+      <tr class="{% if result.is_chosen %}chosen{% endif %} {% if result.include_override == False %}exclude{% endif %}">
         <td>
-          <span class="grid {% if result.is_chosen %}chosen{% endif %} {% if result.include_override == False %}exclude{% endif %}">
+          <span class="grid">
             <a target="_blank" href="/image/{{ result.file_id }}">
               <div class="image-thumbnail large" title="{{ result.file_id }}">
                 <img src="/image/{{ result.file_id }}"/>

@@ -26,12 +26,12 @@
     border: 1px solid black;
     display: inline-block;
     padding: 2px;
-    &.chosen {
-        background-color: #e8ffe8;
-    }
-    &.exclude {
-        background-color: #ffe8e8;
-    }
+}
+.chosen {
+    background-color: #e8ffe8;
+}
+.exclude {
+    background-color: #ffe8e8;
 }
 
 .nav {
