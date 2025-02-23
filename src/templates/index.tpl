@@ -4,7 +4,7 @@
 
 {% block extra_head %}
   <link rel="stylesheet" href="/static/index.css">
-  <script type="text/javascript" src="/static/main.js"></script>
+  <script type="text/javascript" src="/static/index.js"></script>
 {% endblock %}
 
 {% macro stat_row(title, stats) %}
