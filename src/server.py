@@ -8,6 +8,7 @@ import math
 import os
 
 import flask
+import pydantic
 
 from src import result_manager
 from src import score_processor
@@ -18,6 +19,7 @@ from src.config import Config
 # - More filtering:
 #   - Date (range?)
 #   - Score (range?)
+#   - OCR coverage
 #   - OCR text contains
 #   - Include ovverride setting
 #   - Location name includes
@@ -55,6 +57,31 @@ class Log:
   index: int
   now: datetime.datetime
   message: str
+
+
+class GridSettings(pydantic.BaseModel):
+  chosen_yes: bool = False
+  chosen_no: bool = False
+
+  override_include: bool = False
+  override_exclude: bool = False
+  override_unset: bool = False
+
+  date_from: str = '2020-01-01'
+  date_to: str = '2030-01-01'
+
+  score_from: float = -5
+  score_to: float = 5
+
+  location_name: str = ''
+
+  ocr_coverage_from: float = 0
+  ocr_coverage_to: float = 100
+
+  ocr_text: str = ''
+
+  page_index: int = 0
+  page_size: int = 25
 
 
 @dataclass
@@ -153,41 +180,50 @@ def serve(
   @app.route('/grid')
   def grid():
     # Process query params
-    try:
-      page_index = int(flask.request.args.get('page_index'))
-    except:
-      page_index = 0
-    try:
-      page_size = int(flask.request.args.get('page_size'))
-    except:
-      page_size = 25
-    chosen_only = ('chosen_only' in flask.request.args)
+    settings = GridSettings(**flask.request.args)
 
+    # Apply filters
     results = sorted(result_set.results.values(),
                      key=lambda result: result.taken)
-    if chosen_only:
-      results = [result for result in results if result.is_chosen]
+    # - Chosen
+    chosen_values = []
+    if settings.chosen_yes:
+      chosen_values.append(True)
+    if settings.chosen_no:
+      chosen_values.append(False)
+    if chosen_values:
+      results = [
+          result for result in results if result.is_chosen in chosen_values
+      ]
+    # - TODO: Override
+    # - TODO: Date
+    # - TODO: Score
+    # - TODO: Location
+    # - TODO: OCR Coverage
+    # - TODO: OCR text
 
     # Validate params
-    total_results = len(results)
-    total_pages = math.ceil(total_results / page_size)
-    page_index = max(min(page_index, total_pages - 1), 0)
+    filtered_results = len(results)
+    total_pages = math.ceil(filtered_results / settings.page_size)
+    settings.page_index = max(min(settings.page_index, total_pages - 1), 0)
+    # TODO: Calculate date bounds & validate date_from/date_to
+    date_min = '2020-01-01'
+    date_max = '2030-01-01'
 
     # Filter/paginate results
-    start_index = page_index * page_size
-    end_index = start_index + page_size
+    start_index = settings.page_index * settings.page_size
+    end_index = start_index + settings.page_size
     page = results[start_index:end_index]
 
     return flask.render_template(
         'grid.tpl',
-        chosen_only=chosen_only,
-        page_index=page_index,
-        page_size=page_size,
-        total_results=total_results,
+        settings=settings,
+        date_min=date_min,
+        date_max=date_max,
+        total_results=len(result_set.results),
+        filtered_results=filtered_results,
         total_pages=total_pages,
         page=page,
-        start_index=start_index,
-        end_index=end_index,
     )
 
   @app.route('/result/<file_id>', methods=('GET', 'POST'))

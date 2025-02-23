@@ -1,21 +1,61 @@
-.nav {
+
+body, html {
+    height: 100%; /* Ensure body and html take full viewport height */
+    margin: 0; /* Remove default margins */
+    display: flex; /* Use flexbox for layout */
+}
+
+.nav-panel {
     background-color: aliceblue;
-    border: 1px solid black;
     border-radius: 10px;
+    border: 1px solid black;
+    margin: 5px;
+    overflow-y: auto; /* Add vertical scrollbar if content overflows */
     padding: 5px;
+    width: 12vw;
 
-    .icon {
-        background: none;
-        border: none;
-        font-size: 1.2em;
-        padding: 0px;
+    .pagination {
+        display: block;
+        margin-bottom: 10px;
+        text-align: center;
 
-        button& {
-            cursor: pointer;
+        .icon {
+            background: none;
+            border: none;
+            font-size: 1.2em;
+            padding: 0px;
+
+            button& {
+                cursor: pointer;
+            }
         }
     }
 
-    .settings {
-        margin-left: 20px;
+    .heading {
+        display: block;
+        font-weight: bold;
+        padding-top: 10px;
     }
+
+    .settings {
+        input[type='number'] {
+            width: 35%;
+        }
+
+        input[type='text'], input[type='date'] {
+            width: 95%;
+        }
+
+        button {
+            padding: 0px 25px;
+            font-size: 2em;
+            margin: 5px;
+        }
+    }
+}
+
+.content-panel {
+    flex: 1; /* Takes up remaining space */
+    padding: 10px;
+    overflow-y: auto; /* Add vertical scrollbar if content overflows */
 }
