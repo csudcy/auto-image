@@ -3,7 +3,7 @@ name = "Auto-Image"
 version = "0.1.0"
 description = "Automatically choose the top N interesting images from a set of images"
 authors = [{ name = "Nicholas Lee", email = "csudcy@gmail.com" }]
-requires-python = ">=3.9,<3.10"
+requires-python = ">=3.12,<3.13"
 dependencies = [
     "jinja2>=3.1.4",
     "pillow>=11.0.0",
