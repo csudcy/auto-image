@@ -33,7 +33,7 @@ class Config:
   output_quality: int = 95
 
   @property
-  def font(self) -> ImageFont:
+  def font(self) -> ImageFont.FreeTypeFont:
     if not hasattr(self, '_font'):
       self._font = ImageFont.truetype(self.font_filename, self.font_size)
     return self._font

@@ -9,7 +9,8 @@ from src.config import Config
 
 
 def main() -> None:
-  parser = argparse.ArgumentParser(description='Process images from a directory.')
+  parser = argparse.ArgumentParser(
+      description='Process images from a directory.')
   parser.add_argument(
       'input_dir',
       type=pathlib.Path,
@@ -59,7 +60,8 @@ def main() -> None:
       '--latlng-precision',
       type=int,
       default=4,
-      help='Precision to use for lat-lng reverse geocoding (4dp ~= 10m accuracy)',
+      help=
+      'Precision to use for lat-lng reverse geocoding (4dp ~= 10m accuracy)',
   )
   parser.add_argument(
       '--tesser-path',

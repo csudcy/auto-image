@@ -19,12 +19,13 @@ from src.config import Config
 # skin-2018-07-18 12.59.08-2.jpg
 # IMG_20240608_141605_1.jpg
 DATETIME_RE = r'.*(\d{4}-?\d{2}-?\d{2}[ _]\d{2}.?\d{2}.?\d{2})'
-# IMG-20161101-WA0000.jpg 
+# IMG-20161101-WA0000.jpg
 DATE_RE = r'.*(\d{4}-?\d{2}-?\d{2})'
 DATETIME_FORMAT = '%Y%m%d %H%M%S'
 
 IMAGE_CACHE = cachetools.LRUCache(maxsize=128)
 CROP_CACHE = cachetools.LRUCache(maxsize=128)
+
 
 @dataclasses.dataclass
 class LatLon:
@@ -61,7 +62,8 @@ class Result:
       raise Exception(f'Can\'t get image when path is not set! {self.file_id}')
 
   @classmethod
-  def parse_filename(cls, file_id: str, config: Config) -> Optional[datetime.datetime]:
+  def parse_filename(cls, file_id: str,
+                     config: Config) -> Optional[datetime.datetime]:
     # Parse the datetime from the filename
     if match := re.match(DATETIME_RE, file_id):
       dt = match.group(1)
@@ -140,9 +142,11 @@ class Result:
       centre = (self.centre[0] / image_width, self.centre[1] / image_height)
     else:
       centre = (0.5, 0.5)
-    cropped = ImageOps.fit(self.image, (config.crop_width, config.crop_height), centering=centre)
+    cropped = ImageOps.fit(self.image, (config.crop_width, config.crop_height),
+                           centering=centre)
 
     draw = ImageDraw.Draw(cropped)
+
     def _draw_text(x: int, y: int, text: str) -> None:
       # Text & outline
       draw.text(
@@ -185,7 +189,7 @@ class ResultSet:
   def __init__(self, config: Config):
     self.config = config
     self.path = self.config.input_dir / '_auto_image.json'
-    self.results: dict[Result] = {}
+    self.results: dict[str, Result] = {}
     if self.path.exists():
       with self.path.open('r') as f:
         data = json.load(f)
@@ -204,7 +208,7 @@ class ResultSet:
               'scores': item,
           })
         data = data_list
-      
+
       for item in data:
         result = Result.from_dict(item, config)
         self.results[result.file_id] = result
@@ -212,9 +216,9 @@ class ResultSet:
   def save(self) -> None:
     data = [result.to_dict() for result in self.results.values()]
     with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
-        json.dump(data, temp_file, indent=2, ensure_ascii=False)
+      json.dump(data, temp_file, indent=2, ensure_ascii=False)
     os.replace(temp_file.name, self.path)
-  
+
   def get_result(self, file_id: str) -> Result:
     if file_id not in self.results:
       self.results[file_id] = Result(

@@ -8,8 +8,8 @@ import tempfile
 import time
 from typing import Any, Optional
 
-from PIL import Image
 from PIL import ExifTags
+from PIL import Image
 import requests
 
 from src import result_manager
@@ -18,7 +18,6 @@ from src.config import Config
 USER_AGENT = 'AutoImage; https://github.com/csudcy/auto-image'
 HEADERS = {'User-Agent': USER_AGENT}
 API = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat={lat}&lon={lon}'
-
 """
 https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=51.6369323728&lon=-0.500180780833
 
@@ -59,8 +58,10 @@ https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=51.6369323728&lon=
 }
 """
 
-KEY_PREFERENCE_LOCAL = ('suburb', 'village', 'town', 'city_district', 'city', 'state')
-KEY_PREFERENCE_GLOBAL = ('village', 'town', 'city_district', 'city', 'state', 'country')
+KEY_PREFERENCE_LOCAL = ('suburb', 'village', 'town', 'city_district', 'city',
+                        'state')
+KEY_PREFERENCE_GLOBAL = ('village', 'town', 'city_district', 'city', 'state',
+                         'country')
 
 
 @dataclass
@@ -88,7 +89,9 @@ class GeoCodeResult:
     for key in key_preference:
       if key in address:
         # Customise some specific names
-        value = address[key].replace('London Borough of ', '').replace('The Cedars Estate', 'Mill End')
+        value = address[key].replace('London Borough of ',
+                                     '').replace('The Cedars Estate',
+                                                 'Mill End')
         # If there's multiple versions of a name, use the last version
         if '/' in value:
           value = (value.split('/')[-1]).strip()
@@ -110,7 +113,8 @@ class GeoCodeResult:
 
 def _decode_coords(coords: tuple[Any, Any, Any], ref: str) -> float:
   # Coords may be PIL.TiffImagePlugin.IFDRational (but maybe other thingst too, not sure)
-  decimal_degrees = float(coords[0]) + float(coords[1]) / 60 + float(coords[2]) / 3600
+  decimal_degrees = float(
+      coords[0]) + float(coords[1]) / 60 + float(coords[2]) / 3600
   if ref in ('N', 'E'):
     return decimal_degrees
   else:
@@ -123,7 +127,7 @@ class GeoCoder:
     self.config = config
     self.path = self.config.input_dir / '_auto_image_geocoding.json'
     self.next_request = datetime.datetime.now()
-    self.results: dict[GeoCodeResult] = {}
+    self.results: dict[tuple[float, float], GeoCodeResult] = {}
     if self.path.exists():
       with self.path.open('r') as f:
         data = json.load(f)
@@ -132,15 +136,13 @@ class GeoCoder:
         self.results[(result.lat, result.lon)] = result
 
   def save(self) -> None:
-    data = [
-        dataclasses.asdict(result)
-        for result in self.results.values()
-    ]
+    data = [dataclasses.asdict(result) for result in self.results.values()]
     with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp_file:
-        json.dump(data, temp_file, indent=2, ensure_ascii=False)
+      json.dump(data, temp_file, indent=2, ensure_ascii=False)
     os.replace(temp_file.name, self.path)
 
-  def extract_lat_lon(self, image: Image.Image) -> Optional[result_manager.LatLon]:
+  def extract_lat_lon(self,
+                      image: Image.Image) -> Optional[result_manager.LatLon]:
     # Extract the tags
     exifdata = image.getexif()
     if not exifdata:
@@ -158,7 +160,7 @@ class GeoCoder:
     # Return the lat-lon
     return result_manager.LatLon(lat=lat, lon=lon)
 
-  def get_name(self, lat_lon: result_manager.LatLon) -> GeoCodeResult:
+  def get_name(self, lat_lon: result_manager.LatLon) -> Optional[str]:
     lat_dp = round(lat_lon.lat, self.config.latlng_precision)
     lon_dp = round(lat_lon.lon, self.config.latlng_precision)
 

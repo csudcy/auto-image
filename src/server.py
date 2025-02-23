@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from dataclasses import field
 import datetime
@@ -5,7 +6,6 @@ from http import client
 from io import BytesIO
 import math
 import os
-from concurrent.futures import ThreadPoolExecutor
 
 import flask
 
@@ -75,14 +75,10 @@ class ConfigLogger:
     self.logs = self.logs[-self.max_logs:]
 
   def get_logs(self, min_index: int):
-    logs = [
-        {
-            'now': log.now.strftime('%Y/%m/%d %H:%M:%S'),
-            'message': log.message,
-        }
-        for log in self.logs
-        if log.index >= min_index
-    ]
+    logs = [{
+        'now': log.now.strftime('%Y/%m/%d %H:%M:%S'),
+        'message': log.message,
+    } for log in self.logs if log.index >= min_index]
     return {
         'next_index': self.next_index,
         'logs': logs,
@@ -167,7 +163,8 @@ def serve(
       page_size = 25
     chosen_only = ('chosen_only' in flask.request.args)
 
-    results = sorted(result_set.results.values(), key=lambda result: result.taken)
+    results = sorted(result_set.results.values(),
+                     key=lambda result: result.taken)
     if chosen_only:
       results = [result for result in results if result.is_chosen]
 
@@ -198,7 +195,8 @@ def serve(
     result = result_set.results.get(file_id)
     if result:
       if flask.request.method == 'POST':
-        include_override = INCLUDE_OVERRIDE_VALUES[flask.request.form.get('include_override')]
+        include_override = INCLUDE_OVERRIDE_VALUES[flask.request.form.get(
+            'include_override')]
         result.update_include_override(include_override)
         action_executor.submit(result_set.save)
       return flask.render_template(
@@ -212,13 +210,13 @@ def serve(
   @app.route('/group/<int:group_index>', methods=('GET', 'POST'))
   def group_handler(group_index: int):
     results = [
-        result
-        for result in result_set.results.values()
+        result for result in result_set.results.values()
         if result.group_index == group_index
     ]
     if results:
       if flask.request.method == 'POST':
-        include_override = INCLUDE_OVERRIDE_VALUES[flask.request.form.get('include_override')]
+        include_override = INCLUDE_OVERRIDE_VALUES[flask.request.form.get(
+            'include_override')]
         file_id = flask.request.form.get('file_id')
         for result in results:
           if file_id is None or file_id == result.file_id:

@@ -1,4 +1,3 @@
-
 # Based on https://pypi.org/project/open-clip-torch/
 
 from dataclasses import dataclass
@@ -10,8 +9,8 @@ import time
 from typing import Optional
 
 import cv2
-from PIL import Image
 import open_clip
+from PIL import Image
 import tesserocr
 import torch
 
@@ -34,8 +33,8 @@ PHRASE_BAD = ' '.join((
     'A photo thats blurry and unclear.',
 ))
 LABEL_WEIGHTS = {
-  PHRASE_GOOD: 5,
-  PHRASE_BAD: -5,
+    PHRASE_GOOD: 5,
+    PHRASE_BAD: -5,
 }
 LABELS = list(LABEL_WEIGHTS.keys())
 LABEL_SET = set(LABELS)
@@ -70,7 +69,9 @@ class ProcessStats:
       processed_per_minute = 0
 
     wall_time = new_time - self.start_time
-    self.config.log(f'Done {index} / {self.file_count} files (scored {index} in {wall_time:.01f}s, {processed_per_minute:.01f} per minute)')
+    self.config.log(
+        f'Done {index} / {self.file_count} files (scored {index} in {wall_time:.01f}s, {processed_per_minute:.01f} per minute)'
+    )
 
     self.last_index = index
     self.last_time = new_time
@@ -145,7 +146,8 @@ class Scorer:
 
     self.config.log('Processing done!')
 
-  def _update_score(self, path: pathlib.Path, tesser_api: Optional[tesserocr.PyTessBaseAPI]) -> None:
+  def _update_score(self, path: pathlib.Path,
+                    tesser_api: Optional[tesserocr.PyTessBaseAPI]) -> None:
     # Get the result for this path
     result = self.result_set.get_result(path.name)
     path = path.absolute()
@@ -201,8 +203,10 @@ class Scorer:
     result.total = sum(weighted_score)
 
   def _init_model(self) -> None:
-    model, _, preprocess = open_clip.create_model_and_transforms('ViT-B-32', pretrained='laion2b_s34b_b79k')
-    model.eval()  # model in train mode by default, impacts some models with BatchNorm or stochastic depth active
+    model, _, preprocess = open_clip.create_model_and_transforms(
+        'ViT-B-32', pretrained='laion2b_s34b_b79k')
+    model.eval(
+    )  # model in train mode by default, impacts some models with BatchNorm or stochastic depth active
     tokenizer = open_clip.get_tokenizer('ViT-B-32')
 
     text = tokenizer(LABELS)
@@ -212,7 +216,7 @@ class Scorer:
     self._model = model
     self._preprocess = preprocess
     self._text_features = text_features
-  
+
   def _score(self, image: Image.Image) -> dict[str, float]:
     # This is supposed to make things faster/more efficient but doesn't seem to do much;
     # however, it does stop memory going crazy & getting the process killed after some time.
@@ -220,10 +224,12 @@ class Scorer:
       processed_image = self._preprocess(image).unsqueeze(0)
       image_features = self._model.encode_image(processed_image)
       image_features /= image_features.norm(dim=-1, keepdim=True)
-      text_probs = (100.0 * image_features @ self._text_features.T).softmax(dim=-1)
+      text_probs = (100.0 *
+                    image_features @ self._text_features.T).softmax(dim=-1)
     return dict(zip(LABELS, text_probs.tolist()[0]))
 
-  def _get_centre(self, image_path: pathlib.Path) -> Optional[tuple[float, float]]:
+  def _get_centre(self,
+                  image_path: pathlib.Path) -> Optional[tuple[float, float]]:
     # Load the image
     image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
@@ -272,7 +278,8 @@ class Scorer:
   def update_chosen(self) -> None:
     results_list: list[result_manager.Result] = sorted(
         self.result_set.results.values(),
-        key=lambda result: (INCLUDE_OVERRIDE_ORDER[result.include_override], result.total),
+        key=lambda result:
+        (INCLUDE_OVERRIDE_ORDER[result.include_override], result.total),
         reverse=True,
     )
     used_groups = []
@@ -294,40 +301,40 @@ class Scorer:
           result.include_override == False,
       )):
         continue
- 
+
       if chosen_count < self.config.output_count:
         result.is_chosen = True
         chosen_count += 1
       if result.is_chosen and result.group_index is not None:
         used_groups.append(result.group_index)
-    self.config.log(f'Chose {chosen_count} (/{self.config.output_count}) images')
+    self.config.log(
+        f'Chose {chosen_count} (/{self.config.output_count}) images')
 
-  def compare_files(self) -> tuple[set[pathlib.Path], set[str]]:
+  def compare_files(self) -> tuple[list[pathlib.Path], list[str]]:
     self.config.log('Comparing files...')
     # Find all files in the target folder
     self.config.output_dir.mkdir(parents=True, exist_ok=True)
     existing_path_by_file_id = {
-        file.name: file
-        for file in self.config.output_dir.iterdir()
+        file.name: file for file in self.config.output_dir.iterdir()
     }
     existing_file_id_set = set(existing_path_by_file_id.keys())
 
     # Get all chosen files
-    chosen_file_id_set = set((
-        file_id
-        for file_id, result in self.result_set.results.items()
-        if result.is_chosen
-    ))
+    chosen_file_id_set = set(
+        (file_id for file_id, result in self.result_set.results.items()
+         if result.is_chosen))
 
     # Work out what files need to be added/removed
-    file_ids_to_add = chosen_file_id_set - existing_file_id_set
+    file_ids_to_add = list(sorted(chosen_file_id_set - existing_file_id_set))
     file_ids_to_remove = existing_file_id_set - chosen_file_id_set
     paths_to_remove = [
-        existing_path_by_file_id[file_id]
-        for file_id in file_ids_to_remove
+        existing_path_by_file_id[file_id] for file_id in file_ids_to_remove
     ]
+    paths_to_remove.sort()
 
-    self.config.log(f'File operations: {len(file_ids_to_add)} add, {len(file_ids_to_remove)} remove')
+    self.config.log(
+        f'File operations: {len(file_ids_to_add)} add, {len(file_ids_to_remove)} remove'
+    )
 
     return paths_to_remove, file_ids_to_add
 
@@ -342,7 +349,7 @@ class Scorer:
       path.unlink()
       if index % 20 == 0:
         self.config.log(f'  Removed {index}...')
-    
+
     # Copy new files
     self.config.log(f'Copying {len(file_ids_to_add)} new files...')
     for index, file_id in enumerate(file_ids_to_add):
