@@ -7,8 +7,15 @@
     "url": "https://github.com/csudcy/auto-image/"
   },
   "scripts": {
+    "check": "npm run check:imports && npm run check:style && npm run check:types",
+    "check:imports": "./scripts/check_imports.sh --check-only",
+    "check:style": "./scripts/check_style.sh --diff",
+    "check:types": "./scripts/check_types.sh .",
     "deps:install": "uv python install && uv sync --frozen --reinstall",
     "deps:update": "./scripts/deps_update.sh",
+    "fix": "npm run fix:imports && npm run fix:style",
+    "fix:imports": "./scripts/check_imports.sh",
+    "fix:style": "./scripts/check_style.sh --in-place",
     "score:dropbox" : "uv run python3 score.py --output-count=5000 \"/Users/csudcy/Library/CloudStorage/Dropbox/Camera Uploads\" \"/Users/csudcy/Library/CloudStorage/Dropbox/Camera Crop\"",
     "score:local" : "uv run python3 score.py images/ images_chosen/",
     "score" : "uv run python3 score.py"

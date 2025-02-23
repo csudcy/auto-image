@@ -17,5 +17,51 @@ dependencies = [
     "flask>=3.1.0",
 ]
 
+[dependency-groups]
+dev = [
+    "isort>=6.0.0",
+    "pytype>=2021.6.17",
+    "yapf>=0.32.0",
+]
+
 [tool.uv]
 package = false
+
+[tool.isort]
+profile = "google"
+
+# Google style guide has exception for "Long import statements", see:
+# https://github.com/google/styleguide/blob/gh-pages/pyguide.md#32-line-length
+# isort is inheriting line-length=80 from .editorconfig, so override it to
+# a large number (there doesn't seem to be an option to specify no limit?).
+line_length = 1000
+
+skip = []
+
+skip_glob = [
+  "*.pyi",
+  ".venv",
+]
+
+known_third_party = []
+
+[tool.yapf]
+# Documentation about these settings is here: https://github.com/google/yapf#knobs
+based_on_style = "google"
+
+# Yapf-Google default: 4 spaces
+# Desired: 2 spaces
+# See https://engdoc.corp.google.com/eng/doc/devguide/py/style/index.md?cl=head#34-indentation
+indent_width = 2
+
+# Yapf-Google default: Value is always on the next line, indented to the same level as the key.
+# Desired: Try to keep dict entries on a single line; if they span lines, indent them.
+# See https://engdoc.corp.google.com/eng/doc/devguide/py/style/index.md?cl=head#34-indentation
+allow_split_before_dict_value = false
+indent_dictionary_value = true
+
+[tool.yapfignore]
+ignore_patterns = [
+  "**/*.pyi",
+  ".venv",
+]
