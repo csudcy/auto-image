@@ -1,0 +1,14 @@
+table {
+    display: inline-block;
+    .number {
+        padding-left: 10px;
+        padding-right: 5px;
+        text-align: right;
+    }
+    .loading {
+        background-color: #ccf;
+    }
+    .error {
+        background-color: #fcc;
+    }
+}

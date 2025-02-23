@@ -2,6 +2,11 @@
 
 {% block title %}Home{% endblock %}
 
+{% block extra_head %}
+  <link rel="stylesheet" href="/static/index.css">
+  <script type="text/javascript" src="/static/main.js"></script>
+{% endblock %}
+
 {% macro stat_row(title, stats) %}
   <tr>
     <th>{{ title }}</th>

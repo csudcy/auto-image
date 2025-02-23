@@ -1,0 +1,21 @@
+.nav {
+    background-color: aliceblue;
+    border: 1px solid black;
+    border-radius: 10px;
+    padding: 5px;
+
+    .icon {
+        background: none;
+        border: none;
+        font-size: 1.2em;
+        padding: 0px;
+
+        button& {
+            cursor: pointer;
+        }
+    }
+
+    .settings {
+        margin-left: 20px;
+    }
+}

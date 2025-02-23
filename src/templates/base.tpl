@@ -3,7 +3,7 @@
     <head>
         <title>{% block title %}{% endblock %} - Auto Image</title>
         <link rel="stylesheet" href="/static/main.css">
-        <script type="text/javascript" src="/static/main.js"></script>
+        {% block extra_head %}{% endblock %}
     </head>
     <body>
         {% block content %}{% endblock %}

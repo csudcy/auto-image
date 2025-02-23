@@ -2,6 +2,10 @@
 
 {% block title %}Page {{ page_index + 1 }} of {{ total_pages }}{% endblock %}
 
+{% block extra_head %}
+  <link rel="stylesheet" href="/static/grid.css">
+{% endblock %}
+
 {% block content %}
   <div class="nav">
     <form action="/grid" method="get">
@@ -27,6 +31,14 @@
         <input type="number" min="10" max="1000" name="page_size" value="{{ page_size }}"/>
         <input type="checkbox" name="chosen_only" id="chosen_only" {% if chosen_only %}checked{% endif %}/>
         <label for="chosen_only">Chosen only</label>
+
+        {# Date (range?) #}
+        {# Score (range?) #}
+        {# OCR coverage #}
+        {# OCR text contains #}
+        {# Include ovverride setting #}
+        {# Location name includes #}
+
         <button type="submit">Go</button>
       </span>
     </form>

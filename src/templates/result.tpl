@@ -2,6 +2,10 @@
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block extra_head %}
+  <link rel="stylesheet" href="/static/result.css">
+{% endblock %}
+
 {% block content %}
   <h1>{{ title }}</h1>
   <form method="POST">
@@ -104,7 +108,13 @@
 
             <tr>
               <th>Ocr Coverage</th>
-              <td>{{ result.ocr_coverage or '-' }}</td>
+              <td>
+                {% if result.ocr_coverage %}
+                  {{ result.ocr_coverage | round(2) }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
             </tr>
             <tr>
               <th>Ocr Text</th>
