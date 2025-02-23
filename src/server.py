@@ -17,7 +17,7 @@ from src.config import Config
 # TODO:
 # - Make log check smarter (check more often for x time after a log was added)
 # - More filtering:
-#   - Date (range?)
+#   - Date quick filters (by month/year)
 #   - OCR text empty, does not include
 #   - Location name empty, does not include
 # - Improve groups in grid:
@@ -67,8 +67,8 @@ class GridSettings(pydantic.BaseModel):
   override_exclude: bool = False
   override_unset: bool = False
 
-  date_from: str = '2020-01-01'
-  date_to: str = '2030-01-01'
+  date_from: datetime.date = datetime.date.min
+  date_to: datetime.date = datetime.date.max
 
   score_from: float = -5.0
   score_to: float = 5.0
@@ -207,7 +207,22 @@ def serve(
           result for result in results
           if result.include_override in override_values
       ]
-    # - TODO: Date
+    # - Date
+    results_tmp = []
+    date_min = datetime.date.max
+    date_max = datetime.date.min
+    for result in results:
+      if result.taken:
+        result_date = result.taken.date()
+        # Work out date bounds
+        date_min = min(date_min, result_date)
+        date_max = max(date_max, result_date)
+        # Filter this result based on date
+        if settings.date_from <= result_date <= settings.date_to:
+          results_tmp.append(result)
+      else:
+        results_tmp.append(result)
+    results = results_tmp
     # - Score
     results = [
         result for result in results if (result.total >= settings.score_from and
@@ -217,7 +232,8 @@ def serve(
     if settings.location_name:
       results = [
           result for result in results
-          if result.location and settings.location_name in result.location
+          if (result.location and
+              settings.location_name.lower() in result.location.lower())
       ]
     # - OCR Coverage
     results = [
@@ -233,13 +249,14 @@ def serve(
               settings.ocr_text.lower() in result.ocr_text.lower())
       ]
 
-    # Validate params
+    # Validate
+    # - Page index
     filtered_results = len(results)
     total_pages = math.ceil(filtered_results / settings.page_size)
     settings.page_index = max(min(settings.page_index, total_pages - 1), 0)
-    # TODO: Calculate date bounds & validate date_from/date_to
-    date_min = '2020-01-01'
-    date_max = '2030-01-01'
+    # - Date bounds
+    settings.date_from = min(max(settings.date_from, date_min), date_max)
+    settings.date_to = min(max(settings.date_to, date_min), date_max)
 
     # Sort
     results.sort(key=lambda result: result.taken)
