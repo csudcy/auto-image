@@ -18,13 +18,13 @@ from src.config import Config
 # - Make log check smarter (check more often for x time after a log was added)
 # - More filtering:
 #   - Date (range?)
-#   - Score (range?)
-#   - OCR coverage
-#   - OCR text contains
-#   - Include ovverride setting
-#   - Location name includes
-#   - ...
-# - Sorting?
+#   - OCR text empty, does not include
+#   - Location name empty, does not include
+# - Improve groups in grid:
+#   - Group groups?
+#   - Apply chosen/override setting to the group?
+#   - Have separate group filters?
+# - Sorting options - date, score, ocr coverage
 # - Map view
 # - Improve task queuing & tracking (list of tasks, progress bar per task, ...)
 # - Move to just a server?
@@ -70,13 +70,13 @@ class GridSettings(pydantic.BaseModel):
   date_from: str = '2020-01-01'
   date_to: str = '2030-01-01'
 
-  score_from: float = -5
-  score_to: float = 5
+  score_from: float = -5.0
+  score_to: float = 5.0
 
   location_name: str = ''
 
-  ocr_coverage_from: float = 0
-  ocr_coverage_to: float = 100
+  ocr_coverage_from: float = 0.0
+  ocr_coverage_to: float = 1.0
 
   ocr_text: str = ''
 
@@ -183,8 +183,7 @@ def serve(
     settings = GridSettings(**flask.request.args)
 
     # Apply filters
-    results = sorted(result_set.results.values(),
-                     key=lambda result: result.taken)
+    results = result_set.results.values()
     # - Chosen
     chosen_values = []
     if settings.chosen_yes:
@@ -195,12 +194,44 @@ def serve(
       results = [
           result for result in results if result.is_chosen in chosen_values
       ]
-    # - TODO: Override
+    # - Override
+    override_values = []
+    if settings.override_include:
+      override_values.append(True)
+    if settings.override_exclude:
+      override_values.append(False)
+    if settings.override_unset:
+      override_values.append(None)
+    if override_values:
+      results = [
+          result for result in results
+          if result.include_override in override_values
+      ]
     # - TODO: Date
-    # - TODO: Score
-    # - TODO: Location
-    # - TODO: OCR Coverage
-    # - TODO: OCR text
+    # - Score
+    results = [
+        result for result in results if (result.total >= settings.score_from and
+                                         result.total <= settings.score_to)
+    ]
+    # - Location
+    if settings.location_name:
+      results = [
+          result for result in results
+          if result.location and settings.location_name in result.location
+      ]
+    # - OCR Coverage
+    results = [
+        result for result in results
+        if ((result.ocr_coverage or 0) >= settings.ocr_coverage_from and
+            (result.ocr_coverage or 0) <= settings.ocr_coverage_to)
+    ]
+    # - OCR text
+    if settings.ocr_text:
+      results = [
+          result for result in results
+          if (result.ocr_text and
+              settings.ocr_text.lower() in result.ocr_text.lower())
+      ]
 
     # Validate params
     filtered_results = len(results)
@@ -209,6 +240,9 @@ def serve(
     # TODO: Calculate date bounds & validate date_from/date_to
     date_min = '2020-01-01'
     date_max = '2030-01-01'
+
+    # Sort
+    results.sort(key=lambda result: result.taken)
 
     # Filter/paginate results
     start_index = settings.page_index * settings.page_size

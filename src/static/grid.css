@@ -45,12 +45,11 @@ body, html {
         input[type='text'], input[type='date'] {
             width: 95%;
         }
-
-        button {
-            padding: 0px 25px;
-            font-size: 2em;
-            margin: 5px;
-        }
+    }
+    button {
+        padding: 0px 25px;
+        font-size: 2em;
+        margin: 5px;
     }
 }
 

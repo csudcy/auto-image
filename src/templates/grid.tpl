@@ -97,6 +97,7 @@
             value="{{ settings.score_from }}"
             min="-5"
             max="5"
+            step="0.1"
         />
         -
         <input
@@ -105,6 +106,7 @@
             value="{{ settings.score_to }}"
             min="-5"
             max="5"
+            step="0.1"
         />
 
         <span class="heading">Location contains</span>
@@ -120,7 +122,8 @@
             name="ocr_coverage_from"
             value="{{ settings.ocr_coverage_from }}"
             min="0"
-            max="100"
+            max="1"
+            step="0.01"
         />
         -
         <input
@@ -128,7 +131,8 @@
             name="ocr_coverage_to"
             value="{{ settings.ocr_coverage_to }}"
             min="0"
-            max="100"
+            max="1"
+            step="0.01"
         />
 
         <span class="heading">OCR text contains</span>
@@ -149,6 +153,10 @@
 
         <button type="submit">Apply</button>
       </span>
+    </form>
+    <form action="/grid" method="get">
+      <input type="hidden" name="page_size" value="{{ settings.page_size }}"/>
+      <button type="submit">Clear</button>
     </form>
   </div>
 
