@@ -1,21 +1,21 @@
-[tool.poetry]
-name = "Auto Image"
+[project]
+name = "Auto-Image"
 version = "0.1.0"
 description = "Automatically choose the top N interesting images from a set of images"
-authors = [
-  "Nicholas Lee <csudcy@gmail.com>"
+authors = [{ name = "Nicholas Lee", email = "csudcy@gmail.com" }]
+requires-python = ">=3.9,<3.10"
+dependencies = [
+    "jinja2>=3.1.4",
+    "pillow>=11.0.0",
+    "torch>=2.0.0, <2.3",
+    "open_clip_torch>=2.29.0",
+    "numpy<2",
+    "opencv-python>=4.10.0.84",
+    "requests>=2.32.3",
+    "tesserocr>=2.7.1",
+    "cachetools>=5.5.0",
+    "flask>=3.1.0",
 ]
-package-mode = false
 
-[tool.poetry.dependencies]
-python = "^3.9,<3.10"  # Compatible python versions must be declared here
-jinja2 = ">=3.1.4"
-pillow = ">=11.0.0"
-torch = ">=2.0.0, <2.3" # Something about newer torch versions fails to install
-open_clip_torch = ">=2.29.0"
-numpy = "<2" # Looks like open clip uses numpy 1 (which outputs an error about not working with numpy 2)
-opencv-python = ">=4.10.0.84"
-requests = ">=2.32.3"
-tesserocr = ">=2.7.1"
-cachetools = ">=5.5.0"
-flask = ">=3.1.0"
+[tool.uv]
+package = false

@@ -7,11 +7,11 @@
     "url": "https://github.com/csudcy/auto-image/"
   },
   "scripts": {
-    "poetry:install": "./scripts/poetry_install.sh",
-    "poetry:update": "./scripts/poetry_update.sh",
-    "score:dropbox" : "./scripts/poetry_run.sh python3 score.py --output-count=5000 \"/Users/csudcy/Library/CloudStorage/Dropbox/Camera Uploads\" \"/Users/csudcy/Library/CloudStorage/Dropbox/Camera Crop\"",
-    "score:local" : "./scripts/poetry_run.sh python3 score.py images/ images_chosen/",
-    "score" : "./scripts/poetry_run.sh python3 score.py"
+    "deps:install": "uv python install && uv sync --frozen --reinstall",
+    "deps:update": "./scripts/deps_update.sh",
+    "score:dropbox" : "uv run python3 score.py --output-count=5000 \"/Users/csudcy/Library/CloudStorage/Dropbox/Camera Uploads\" \"/Users/csudcy/Library/CloudStorage/Dropbox/Camera Crop\"",
+    "score:local" : "uv run python3 score.py images/ images_chosen/",
+    "score" : "uv run python3 score.py"
   },
   "author": "Nicholas Lee <csudcy@gmail.com>",
   "devDependencies": {},
