@@ -102,12 +102,17 @@ def main() -> None:
       ocr_text_threshold=args.ocr_text_threshold,
   )
 
+  config.log('Loading result set...')
   result_set = result_manager.ResultSet(config)
+  config.log('Initialising geocoder...')
   geocoder = geocode_manager.GeoCoder(config)
+  config.log('Initialising score processor...')
   scorer = score_processor.Scorer(config, result_set, geocoder)
   if args.serve:
+    config.log('Starting server...')
     server.serve(config, result_set, scorer)
   else:
+    config.log('Processing...')
     scorer.process()
     if args.apply:
       scorer.update_files()
