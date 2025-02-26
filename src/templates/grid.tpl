@@ -151,6 +151,35 @@
             max="1000"
         />
 
+        <span class="heading">Sort</span>
+        <select name="sort_type">
+          <option
+              value="taken"
+              {% if settings.sort_type.value == 'taken' %}selected{% endif %}
+          >
+            Taken
+          </option>
+          <option
+              value="total"
+              {% if settings.sort_type.value == 'total' %}selected{% endif %}
+          >
+            Score
+          </option>
+          <option
+              value="ocr_coverage"
+              {% if settings.sort_type.value == 'ocr_coverage' %}selected{% endif %}
+          >
+            OCR Coverage
+          </option>
+        </select>
+        <input
+            type="checkbox"
+            name="sort_reverse"
+            id="sort_reverse"
+            {% if settings.sort_reverse %}checked{% endif %}
+        />
+        <label for="sort_reverse">Reverse</label><br/>
+
         <button type="submit">Apply</button>
       </span>
     </form>

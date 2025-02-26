@@ -2,6 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from dataclasses import field
 import datetime
+from enum import Enum
 from http import client
 from io import BytesIO
 import math
@@ -24,7 +25,6 @@ from src.config import Config
 #   - Group groups?
 #   - Apply chosen/override setting to the group?
 #   - Have separate group filters?
-# - Sorting options - date, score, ocr coverage
 # - Map view
 # - Improve task queuing & tracking (list of tasks, progress bar per task, ...)
 # - Move to just a server?
@@ -37,6 +37,9 @@ from src.config import Config
 # - Re-generate cropped/captioned image if crop/address changes
 # - Force re-generate all exported images
 # - Move result set (& config) to sqlite?
+#   - Generate thumbnails for all images & use in grid
+#   - Generate cropped for all images (optionally use in grid?)
+#   - Track tasks through db
 # - Display (and set?) config through UI
 
 INCLUDE_OVERRIDE_VALUES = {
@@ -57,6 +60,19 @@ class Log:
   index: int
   now: datetime.datetime
   message: str
+
+
+class SortType(Enum):
+  OCR_COVERAGE = 'ocr_coverage'
+  TAKEN = 'taken'
+  TOTAL = 'total'
+
+
+SORT_KEYS = {
+    SortType.OCR_COVERAGE: lambda r: (r.ocr_coverage or 0, r.taken or datetime.datetime.min),
+    SortType.TAKEN: lambda r: r.taken or datetime.datetime.min,
+    SortType.TOTAL: lambda r: (r.total or 0, r.taken or datetime.datetime.min),
+}
 
 
 class GridSettings(pydantic.BaseModel):
@@ -82,6 +98,9 @@ class GridSettings(pydantic.BaseModel):
 
   page_index: int = 0
   page_size: int = 25
+
+  sort_type: SortType = SortType.TAKEN
+  sort_reverse: bool = False
 
 
 @dataclass
@@ -259,7 +278,10 @@ def serve(
     settings.date_to = min(max(settings.date_to, date_min), date_max)
 
     # Sort
-    results.sort(key=lambda result: result.taken)
+    results.sort(
+        key=SORT_KEYS[settings.sort_type],
+        reverse=settings.sort_reverse,
+    )
 
     # Filter/paginate results
     start_index = settings.page_index * settings.page_size
