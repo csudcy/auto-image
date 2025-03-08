@@ -7,6 +7,7 @@ from http import client
 from io import BytesIO
 import math
 import os
+from typing import Callable, Optional
 
 import flask
 import pydantic
@@ -69,7 +70,8 @@ class SortType(Enum):
 
 
 SORT_KEYS = {
-    SortType.OCR_COVERAGE: lambda r: (r.ocr_coverage or 0, r.taken or datetime.datetime.min),
+    SortType.OCR_COVERAGE:
+        (lambda r: (r.ocr_coverage or 0, r.taken or datetime.datetime.min)),
     SortType.TAKEN: lambda r: r.taken or datetime.datetime.min,
     SortType.TOTAL: lambda r: (r.total or 0, r.taken or datetime.datetime.min),
 }
@@ -89,18 +91,56 @@ class GridSettings(pydantic.BaseModel):
   score_from: float = -5.0
   score_to: float = 5.0
 
-  location_name: str = ''
+  location_name: Optional[str] = None
 
-  ocr_coverage_from: float = 0.0
-  ocr_coverage_to: float = 1.0
+  ocr_coverage_from: Optional[float] = None
+  ocr_coverage_to: Optional[float] = None
 
-  ocr_text: str = ''
+  ocr_text: Optional[str] = None
 
   page_index: int = 0
   page_size: int = 25
 
   sort_type: SortType = SortType.TAKEN
   sort_reverse: bool = False
+
+  def get_matcher(self) -> Callable[[result_manager.Result], bool]:
+    # - Chosen
+    chosen_values = []
+    if self.chosen_yes:
+      chosen_values.append(True)
+    if self.chosen_no:
+      chosen_values.append(False)
+    # - Override
+    override_values = []
+    if self.override_include:
+      override_values.append(True)
+    if self.override_exclude:
+      override_values.append(False)
+    if self.override_unset:
+      override_values.append(None)
+    # - Location
+    location_name = self.location_name.lower() if self.location_name else None
+    # - OCR text
+    ocr_text_lower = self.ocr_text.lower() if self.ocr_text else None
+
+    def matcher(result: result_manager.Result) -> bool:
+      return all((
+          not chosen_values or result.is_chosen in chosen_values,
+          not override_values or result.include_override in override_values,
+          (not result.taken or
+           self.date_from <= result.taken.date() <= self.date_to),
+          result.total >= self.score_from and result.total <= self.score_to,
+          not location_name or location_name in (result.location or '').lower(),
+          (self.ocr_coverage_from is None or
+           (result.ocr_coverage or 0) >= self.ocr_coverage_from),
+          (self.ocr_coverage_to is None or
+           (result.ocr_coverage or 0) <= self.ocr_coverage_to),
+          (not ocr_text_lower or
+           ocr_text_lower in (result.ocr_text or '').lower()),
+      ))
+
+    return matcher
 
 
 @dataclass
@@ -199,83 +239,30 @@ def serve(
   @app.route('/grid')
   def grid():
     # Process query params
-    settings = GridSettings(**flask.request.args)
+    args_with_values = {
+        arg: value for arg, value in flask.request.args.items() if value
+    }
+    settings = GridSettings(**args_with_values)
 
-    # Apply filters
+    # Work out date bounds & validate
     results = result_set.results.values()
-    # - Chosen
-    chosen_values = []
-    if settings.chosen_yes:
-      chosen_values.append(True)
-    if settings.chosen_no:
-      chosen_values.append(False)
-    if chosen_values:
-      results = [
-          result for result in results if result.is_chosen in chosen_values
-      ]
-    # - Override
-    override_values = []
-    if settings.override_include:
-      override_values.append(True)
-    if settings.override_exclude:
-      override_values.append(False)
-    if settings.override_unset:
-      override_values.append(None)
-    if override_values:
-      results = [
-          result for result in results
-          if result.include_override in override_values
-      ]
-    # - Date
-    results_tmp = []
     date_min = datetime.date.max
     date_max = datetime.date.min
     for result in results:
       if result.taken:
         result_date = result.taken.date()
-        # Work out date bounds
         date_min = min(date_min, result_date)
         date_max = max(date_max, result_date)
-        # Filter this result based on date
-        if settings.date_from <= result_date <= settings.date_to:
-          results_tmp.append(result)
-      else:
-        results_tmp.append(result)
-    results = results_tmp
-    # - Score
-    results = [
-        result for result in results if (result.total >= settings.score_from and
-                                         result.total <= settings.score_to)
-    ]
-    # - Location
-    if settings.location_name:
-      results = [
-          result for result in results
-          if (result.location and
-              settings.location_name.lower() in result.location.lower())
-      ]
-    # - OCR Coverage
-    results = [
-        result for result in results
-        if ((result.ocr_coverage or 0) >= settings.ocr_coverage_from and
-            (result.ocr_coverage or 0) <= settings.ocr_coverage_to)
-    ]
-    # - OCR text
-    if settings.ocr_text:
-      results = [
-          result for result in results
-          if (result.ocr_text and
-              settings.ocr_text.lower() in result.ocr_text.lower())
-      ]
+    settings.date_from = min(max(settings.date_from, date_min), date_max)
+    settings.date_to = min(max(settings.date_to, date_min), date_max)
 
-    # Validate
-    # - Page index
+    # Apply filters
+    results = list(filter(settings.get_matcher(), results))
+
+    # Validate Page index
     filtered_results = len(results)
     total_pages = math.ceil(filtered_results / settings.page_size)
     settings.page_index = max(min(settings.page_index, total_pages - 1), 0)
-    # - Date bounds
-    settings.date_from = min(max(settings.date_from, date_min), date_max)
-    settings.date_to = min(max(settings.date_to, date_min), date_max)
 
     # Sort
     results.sort(
@@ -283,7 +270,7 @@ def serve(
         reverse=settings.sort_reverse,
     )
 
-    # Filter/paginate results
+    # Paginate results
     start_index = settings.page_index * settings.page_size
     end_index = start_index + settings.page_size
     page = results[start_index:end_index]

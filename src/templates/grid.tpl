@@ -113,14 +113,18 @@
         <input
             type="text"
             name="location_name"
-            value="{{ settings.location_name }}"
+            {% if settings.location_name %}
+              value="{{ settings.location_name }}"
+            {% endif %}
         />
 
         <span class="heading">OCR Coverage</span>
         <input
             type="number"
             name="ocr_coverage_from"
-            value="{{ settings.ocr_coverage_from }}"
+            {% if settings.ocr_coverage_from != None %}
+              value="{{ settings.ocr_coverage_from }}"
+            {% endif %}
             min="0"
             max="1"
             step="0.01"
@@ -129,7 +133,9 @@
         <input
             type="number"
             name="ocr_coverage_to"
-            value="{{ settings.ocr_coverage_to }}"
+            {% if settings.ocr_coverage_to != None %}
+              value="{{ settings.ocr_coverage_to }}"
+            {% endif %}
             min="0"
             max="1"
             step="0.01"
@@ -139,7 +145,9 @@
         <input
             type="text"
             name="ocr_text"
-            value="{{ settings.ocr_text }}"
+            {% if settings.ocr_text %}
+              value="{{ settings.ocr_text }}"
+            {% endif %}
         />
 
         <span class="heading">Page Size</span>
