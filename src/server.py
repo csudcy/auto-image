@@ -369,5 +369,12 @@ def serve(
     logs = config_logger.get_logs(min_index)
     return flask.jsonify(logs)
 
+  @app.route('/map')
+  def map():
+    return flask.render_template(
+        'map.tpl',
+        # results=results,
+    )
+
   config.log('Server started!')
   app.run()
