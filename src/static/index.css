@@ -1,14 +1,15 @@
-table {
-    display: inline-block;
-    .number {
-        padding-left: 10px;
-        padding-right: 5px;
-        text-align: right;
-    }
-    .loading {
-        background-color: #ccf;
-    }
-    .error {
-        background-color: #fcc;
+.overview {
+    padding: 2rem;
+    text-align: center;
+
+    div {
+        font-size: 12rem;
+        font-weight: bold;
+        
+        div {
+            font-size: 3rem;
+            margin-top: -3rem;
+            padding-bottom: 4rem;
+        }
     }
 }

@@ -199,6 +199,18 @@ def serve(
 
   @app.route('/', methods=('GET', 'POST'))
   def index():
+    result: result_manager.Result
+    count_chosen = len(
+        [result for result in result_set.results.values() if result.is_chosen])
+
+    return flask.render_template(
+        'index.tpl',
+        count_total=len(result_set.results),
+        count_chosen=count_chosen,
+    )
+
+  @app.route('/processing', methods=('GET', 'POST'))
+  def processing():
     if flask.request.method == 'POST':
       action = flask.request.form.get('action')
       if action_func := ACTION_FUNCS.get(action):
@@ -234,7 +246,7 @@ def serve(
           grouped_counts.chosen += 1
 
     return flask.render_template(
-        'index.tpl',
+        'processing.tpl',
         total_counts=total_counts,
         group_count=len(group_indexes),
         grouped_counts=grouped_counts,

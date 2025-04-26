@@ -10,6 +10,7 @@
             <nav>
                 <a href="/">Home</a>
                 <a href="/grid">Images</a>
+                <a href="/processing">Processing</a>
             </nav>
         </header>
         <main>
