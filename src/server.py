@@ -376,5 +376,29 @@ def serve(
         # results=results,
     )
 
+  @app.route('/api/map/points')
+  def map_points():
+    result: result_manager.Result
+    points = [
+        {
+            'type': 'Feature',
+            'properties': {
+                'file_id': result.file_id,
+                'group_index': result.group_index,
+                'is_chosen': result.is_chosen,
+                'location': result.location,
+                'time_taken_text': result.get_time_taken_text(config),
+            },
+            'geometry': {
+                'type': 'Point',
+                'coordinates': [result.lat_lon.lon, result.lat_lon.lat],
+            }
+        }
+        for result in result_set.results.values()
+        if result.lat_lon
+    ]
+
+    return flask.jsonify({'points': points})
+
   config.log('Server started!')
   app.run()

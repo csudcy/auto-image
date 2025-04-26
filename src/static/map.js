@@ -6,14 +6,47 @@ document.addEventListener('DOMContentLoaded', function() {
       attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   }).addTo(map);
 
-  L.marker([51.5, -0.09]).addTo(map);
+  let markers = L.markerClusterGroup();
+  map.addLayer(markers);
 
-  var popup = L.popup();
-  function onMapClick(e) {
-      popup
-          .setLatLng(e.latlng)
-          .setContent("You clicked the map at " + e.latlng.toString())
-          .openOn(map);
+  function onEachFeature(feature, layer) {
+    if (feature.properties) {
+      const props = feature.properties;
+
+      let text;
+      if (props.location && props.time_taken_text) {
+        text = `${props.location}<br/>${props.time_taken_text}`;
+      } else if (props.location) {
+        text = props.location;
+      } else if (props.time_taken_text) {
+        text = props.time_taken_text;
+      } else {
+        text = props.file_id;
+      }
+
+      let link;
+      if (props.group_index) {
+        link = `/group/${props.group_index}`;
+      } else {
+        link = `/result/${props.file_id}`;
+      }
+      layer.bindPopup(`
+        <p>
+          <a href="${link}" target="_blank">
+            <div class="image-thumbnail">
+              <img src="/image/${props.file_id}"/>
+            </div>
+            ${text}
+          </a>
+        </p>`);
+    }
   }
-  map.on('click', onMapClick);
+
+  fetch("/api/map/points")
+    .then((response) => response.json())
+    .then((response) => {
+      L.geoJSON(response.points, {
+        onEachFeature: onEachFeature
+      }).addTo(markers);
+    });
 });
