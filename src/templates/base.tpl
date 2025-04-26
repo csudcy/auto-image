@@ -6,6 +6,14 @@
         {% block extra_head %}{% endblock %}
     </head>
     <body>
-        {% block content %}{% endblock %}
+        <header>
+            <nav>
+                <a href="/">Home</a>
+                <a href="/grid">Images</a>
+            </nav>
+        </header>
+        <main>
+            {% block content %}{% endblock %}
+        </main>
     </body>
 </html>

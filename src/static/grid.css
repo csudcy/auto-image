@@ -1,5 +1,5 @@
 
-body, html {
+main {
     height: 100%; /* Ensure body and html take full viewport height */
     margin: 0; /* Remove default margins */
     display: flex; /* Use flexbox for layout */
