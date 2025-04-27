@@ -8,10 +8,10 @@
     <body>
         <header>
             <nav>
-                <a href="/">Home</a>
-                <a href="/grid">Images</a>
-                <a href="/map">Map</a>
-                <a href="/processing">Processing</a>
+                <a class="button" href="/">Home</a>
+                <a class="button" href="/grid">Images</a>
+                <a class="button" href="/map">Map</a>
+                <a class="button" href="/processing">Processing</a>
             </nav>
         </header>
         <main>

@@ -1,5 +1,4 @@
-
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
   let map = L.map('map').setView([51, 0], 2);
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -49,4 +48,15 @@ document.addEventListener('DOMContentLoaded', function() {
         onEachFeature: onEachFeature
       }).addTo(markers);
     });
+
+  document.getElementById('show_images').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const bounds = map.getBounds();
+    const grid_url = new URL("/grid", window.location);
+    grid_url.searchParams.append("north", bounds.getNorth());
+    grid_url.searchParams.append("south", bounds.getSouth());
+    grid_url.searchParams.append("east", bounds.getEast());
+    grid_url.searchParams.append("west", bounds.getWest());
+    window.location = grid_url;
+  })
 });

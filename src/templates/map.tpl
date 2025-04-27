@@ -21,4 +21,7 @@
 
 {% block content %}
   <div id="map"></div>
+  <span class="button" href="#" id="show_images">
+    Browse these images
+  </span>
 {% endblock %}
