@@ -104,6 +104,11 @@ class GridSettings(pydantic.BaseModel):
 
   ocr_text: Optional[str] = None
 
+  north: Optional[float] = None
+  south: Optional[float] = None
+  east: Optional[float] = None
+  west: Optional[float] = None
+
   page_index: int = 0
   page_size: int = 25
 
@@ -127,6 +132,7 @@ class GridSettings(pydantic.BaseModel):
       override_values.append(None)
     # - Location
     location_name = self.location_name.lower() if self.location_name else None
+    has_bounds = bool(self.north or self.south or self.east or self.west)
     # - OCR text
     ocr_text_lower = self.ocr_text.lower() if self.ocr_text else None
 
@@ -138,6 +144,12 @@ class GridSettings(pydantic.BaseModel):
            self.date_from <= result.taken.date() <= self.date_to),
           result.total >= self.score_from and result.total <= self.score_to,
           not location_name or location_name in (result.location or '').lower(),
+          not has_bounds or (result.lat_lon and all((
+            self.north is None or self.north >= result.lat_lon.lat,
+            self.south is None or self.south <= result.lat_lon.lat,
+            self.east is None or self.east >= result.lat_lon.lon,
+            self.west is None or self.west <= result.lat_lon.lon,
+          ))),
           (self.ocr_coverage_from is None or
            (result.ocr_coverage or 0) >= self.ocr_coverage_from),
           (self.ocr_coverage_to is None or

@@ -45,6 +45,17 @@ main {
         input[type='text'], input[type='date'] {
             width: 95%;
         }
+
+        .bounds {
+            label {
+                display: inline-block;
+                width: 10%;
+            }
+
+            input {
+                width: 82%;
+            }
+        }
     }
     button {
         padding: 0px 25px;

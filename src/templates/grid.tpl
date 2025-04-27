@@ -109,14 +109,54 @@
             step="0.1"
         />
 
-        <span class="heading">Location contains</span>
+        <span class="heading">Location</span>
+        <label for="location_name">Name contains</label><br/>
         <input
             type="text"
             name="location_name"
+            id="location_name"
             {% if settings.location_name %}
               value="{{ settings.location_name }}"
             {% endif %}
-        />
+        /><br/>
+        <span class="bounds">
+          <label for="north">N</label>
+          <input
+              type="text"
+              name="north"
+              id="north"
+              {% if settings.north != None %}
+                value="{{ settings.north }}"
+              {% endif %}
+          /><br/>
+          <label for="south">S</label>
+          <input
+              type="text"
+              name="south"
+              id="south"
+              {% if settings.south != None %}
+                value="{{ settings.south }}"
+              {% endif %}
+          /><br/>
+          <label for="east">E</label>
+          <input
+              type="text"
+              name="east"
+              id="east"
+              {% if settings.east != None %}
+                value="{{ settings.east }}"
+              {% endif %}
+          /><br/>
+          <label for="west">W</label>
+          <input
+              type="text"
+              name="west"
+              id="west"
+              {% if settings.west != None %}
+                value="{{ settings.west }}"
+              {% endif %}
+          />
+        </span>
 
         <span class="heading">OCR Coverage</span>
         <input
