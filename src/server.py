@@ -215,6 +215,7 @@ def serve(
       'process': scorer.process,
       'check': scorer.compare_files,
       'apply': scorer.update_files,
+      'save': result_set.save,
   }
 
   action_executor = ThreadPoolExecutor(max_workers=1)
@@ -231,14 +232,20 @@ def serve(
         count_chosen=count_chosen,
     )
 
+  def _process_action(action: str) -> None:
+    if action_func := ACTION_FUNCS.get(action):
+      try:
+        action_func()
+      except Exception as ex:
+        config.log(f'Error running action {action}: {ex}')
+    else:
+      config.log(f'Unknown action: {action}')
+
   @app.route('/processing', methods=('GET', 'POST'))
   def processing():
     if flask.request.method == 'POST':
       action = flask.request.form.get('action')
-      if action_func := ACTION_FUNCS.get(action):
-        action_executor.submit(action_func)
-      else:
-        config.log(f'Unknown action: {action}')
+      action_executor.submit(_process_action, action)
 
     total_counts = Counts()
     group_indexes = set()
@@ -334,7 +341,7 @@ def serve(
         include_override = INCLUDE_OVERRIDE_VALUES[flask.request.form.get(
             'include_override')]
         result.update_include_override(include_override)
-        action_executor.submit(result_set.save)
+        action_executor.submit(_process_action, 'save')
       return flask.render_template(
           'result.tpl',
           title=result.file_id,
@@ -357,7 +364,7 @@ def serve(
         for result in results:
           if file_id is None or file_id == result.file_id:
             result.update_include_override(include_override)
-        action_executor.submit(result_set.save)
+        action_executor.submit(_process_action, 'save')
       return flask.render_template(
           'result.tpl',
           title=f'Group {group_index}',
