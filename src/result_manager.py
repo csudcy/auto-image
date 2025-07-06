@@ -54,7 +54,7 @@ class Result:
   # Recalculated each time
   taken: Optional[datetime.datetime] = None
 
-  def get_time_taken_text(self, config: Config) -> str:
+  def get_time_taken_text(self, config: Config) -> Optional[str]:
     if self.taken:
       return self.taken.strftime(config.taken_format)
     else:
@@ -170,9 +170,10 @@ class Result:
       _draw_text(config.text_offset_x, text_top, self.location)
     if self.taken:
       taken_text = self.get_time_taken_text(config)
-      taken_size = int(draw.textlength(taken_text, font=config.font))
-      taken_x = config.crop_width - taken_size - 2 * config.text_offset_x
-      _draw_text(taken_x, text_top, taken_text)
+      if taken_text:
+        taken_size = int(draw.textlength(taken_text, font=config.font))
+        taken_x = config.crop_width - taken_size - 2 * config.text_offset_x
+        _draw_text(taken_x, text_top, taken_text)
 
     return cropped
 
