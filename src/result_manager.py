@@ -46,6 +46,7 @@ class Result:
   lat_lon: Optional[LatLon] = None
   lat_lon_extracted: bool = False
   location: Optional[str] = None
+  needs_update: bool = False
   ocr_coverage: Optional[float] = None
   ocr_text: Optional[str] = None
   path: Optional[pathlib.Path] = None
@@ -86,13 +87,12 @@ class Result:
 
   @classmethod
   def from_dict(cls, data: dict, config: Config) -> 'Result':
-    if lat_lon_data := data['lat_lon']:
+    if lat_lon_data := data.pop('lat_lon'):
       lat_lon = LatLon(**lat_lon_data)
     else:
       lat_lon = None
 
-    if path_data := data['path']:
-      # pathlib.Path
+    if path_data := data.pop('path'):
       path_potential = pathlib.Path(path_data)
       if path_potential.exists():
         path = path_potential
@@ -108,6 +108,7 @@ class Result:
         lat_lon=lat_lon,
         lat_lon_extracted=data['lat_lon_extracted'],
         location=data['location'],
+        needs_update=data.get('needs_update', False),
         ocr_coverage=data['ocr_coverage'],
         ocr_text=data['ocr_text'],
         path=path,
@@ -126,6 +127,7 @@ class Result:
         'lat_lon': dataclasses.asdict(self.lat_lon) if self.lat_lon else None,
         'lat_lon_extracted': self.lat_lon_extracted,
         'location': self.location,
+        'needs_update': self.needs_update,
         'ocr_coverage': self.ocr_coverage,
         'ocr_text': self.ocr_text,
         'path': str(self.path) if self.path else None,

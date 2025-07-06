@@ -77,6 +77,20 @@ class ProcessStats:
     self.last_time = new_time
 
 
+@dataclass
+class CompareFilesResult:
+  file_ids_to_add: list[str]
+  file_ids_to_update: list[str]
+  paths_to_remove: list[pathlib.Path]
+
+  def __str__(self):
+    return ', '.join((
+        f'Add: {len(self.file_ids_to_add)}',
+        f'Update: {len(self.file_ids_to_update)}',
+        f'Remove: {len(self.paths_to_remove)}',
+    ))
+
+
 class Scorer:
 
   def __init__(
@@ -310,7 +324,7 @@ class Scorer:
     self.config.log(
         f'Chose {chosen_count} (/{self.config.output_count}) images')
 
-  def compare_files(self) -> tuple[list[pathlib.Path], list[str]]:
+  def compare_files(self) -> CompareFilesResult:
     self.config.log('Comparing files...')
     # Find all files in the target folder
     self.config.output_dir.mkdir(parents=True, exist_ok=True)
@@ -324,40 +338,63 @@ class Scorer:
         (file_id for file_id, result in self.result_set.results.items()
          if result.is_chosen))
 
+    needs_update_file_id_set = set(
+        (file_id for file_id, result in self.result_set.results.items()
+         if result.is_chosen and result.needs_update))
+
     # Work out what files need to be added/removed
-    file_ids_to_add = list(sorted(chosen_file_id_set - existing_file_id_set))
+    file_ids_to_add_set = chosen_file_id_set - existing_file_id_set
+    file_ids_to_add = list(sorted(file_ids_to_add_set))
+    file_ids_to_update = list(
+        sorted(needs_update_file_id_set - file_ids_to_add_set))
     file_ids_to_remove = existing_file_id_set - chosen_file_id_set
     paths_to_remove = [
         existing_path_by_file_id[file_id] for file_id in file_ids_to_remove
     ]
     paths_to_remove.sort()
 
-    self.config.log(
-        f'File operations: {len(file_ids_to_add)} add, {len(file_ids_to_remove)} remove'
+    compare_result = CompareFilesResult(
+        file_ids_to_add=file_ids_to_add,
+        file_ids_to_update=file_ids_to_update,
+        paths_to_remove=paths_to_remove,
     )
-
-    return paths_to_remove, file_ids_to_add
+    self.config.log(f'Compare result: {compare_result}')
+    return compare_result
 
   def update_files(self) -> None:
-    paths_to_remove, file_ids_to_add = self.compare_files()
+    compare_result = self.compare_files()
 
     self.config.log('Updating files...')
 
     # Remove old files
-    self.config.log(f'Removing {len(paths_to_remove)} old files...')
-    for index, path in enumerate(paths_to_remove):
+    self.config.log(
+        f'Removing {len(compare_result.paths_to_remove)} old files...')
+    for index, path in enumerate(compare_result.paths_to_remove):
       path.unlink()
       if index % 20 == 0:
         self.config.log(f'  Removed {index}...')
 
     # Copy new files
-    self.config.log(f'Copying {len(file_ids_to_add)} new files...')
-    for index, file_id in enumerate(file_ids_to_add):
+    self.config.log(
+        f'Copying {len(compare_result.file_ids_to_add)} new files...')
+    for index, file_id in enumerate(compare_result.file_ids_to_add):
       result = self.result_set.get_result(file_id)
       output_path = self.config.output_dir / file_id
       cropped = result.get_cropped(self.config)
       cropped.save(output_path, quality=self.config.output_quality)
       if index % 20 == 0:
         self.config.log(f'  Copied {index}...')
+
+    # Update changed files
+    self.config.log(
+        f'Updating {len(compare_result.file_ids_to_update)} files...')
+    for index, file_id in enumerate(compare_result.file_ids_to_update):
+      result = self.result_set.get_result(file_id)
+      output_path = self.config.output_dir / file_id
+      output_path.unlink()
+      cropped = result.get_cropped(self.config)
+      cropped.save(output_path, quality=self.config.output_quality)
+      if index % 20 == 0:
+        self.config.log(f'  Updated {index}...')
 
     self.config.log('Updating done!')
