@@ -47,6 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
       L.geoJSON(response.points, {
         onEachFeature: onEachFeature
       }).addTo(markers);
+
+      map.fitBounds(markers.getBounds());
     });
 
   document.getElementById('show_images').addEventListener('click', (e) => {

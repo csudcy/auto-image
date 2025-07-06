@@ -17,7 +17,6 @@ from src import score_processor
 from src.config import Config
 
 # TODO:
-# - Map view
 # - Improve automation
 #   - Rescan periodically
 #   - Show a progress bar / counter
@@ -145,10 +144,10 @@ class GridSettings(pydantic.BaseModel):
           result.total >= self.score_from and result.total <= self.score_to,
           not location_name or location_name in (result.location or '').lower(),
           not has_bounds or (result.lat_lon and all((
-            self.north is None or self.north >= result.lat_lon.lat,
-            self.south is None or self.south <= result.lat_lon.lat,
-            self.east is None or self.east >= result.lat_lon.lon,
-            self.west is None or self.west <= result.lat_lon.lon,
+              self.north is None or self.north >= result.lat_lon.lat,
+              self.south is None or self.south <= result.lat_lon.lat,
+              self.east is None or self.east >= result.lat_lon.lon,
+              self.west is None or self.west <= result.lat_lon.lon,
           ))),
           (self.ocr_coverage_from is None or
            (result.ocr_coverage or 0) >= self.ocr_coverage_from),
@@ -383,32 +382,27 @@ def serve(
 
   @app.route('/map')
   def map():
-    return flask.render_template(
-        'map.tpl',
-        # results=results,
-    )
+    return flask.render_template('map.tpl',
+                                 # results=results,
+                                )
 
   @app.route('/api/map/points')
   def map_points():
     result: result_manager.Result
-    points = [
-        {
-            'type': 'Feature',
-            'properties': {
-                'file_id': result.file_id,
-                'group_index': result.group_index,
-                'is_chosen': result.is_chosen,
-                'location': result.location,
-                'time_taken_text': result.get_time_taken_text(config),
-            },
-            'geometry': {
-                'type': 'Point',
-                'coordinates': [result.lat_lon.lon, result.lat_lon.lat],
-            }
+    points = [{
+        'type': 'Feature',
+        'properties': {
+            'file_id': result.file_id,
+            'group_index': result.group_index,
+            'is_chosen': result.is_chosen,
+            'location': result.location,
+            'time_taken_text': result.get_time_taken_text(config),
+        },
+        'geometry': {
+            'type': 'Point',
+            'coordinates': [result.lat_lon.lon, result.lat_lon.lat],
         }
-        for result in result_set.results.values()
-        if result.lat_lon
-    ]
+    } for result in result_set.results.values() if result.lat_lon]
 
     return flask.jsonify({'points': points})
 
