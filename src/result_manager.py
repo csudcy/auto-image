@@ -33,6 +33,10 @@ class LatLon:
   lon: float
 
 
+def _result_cache_key(result, *args, **kwargs):
+  return f'{result.file_id}-{result.centre}-{result.description}-{result.location}'
+
+
 @dataclasses.dataclass
 class Result:
   file_id: str
@@ -40,6 +44,7 @@ class Result:
 
   # Loaded from dict
   centre: Optional[tuple[float, float]] = None
+  description: Optional[str] = None
   group_index: Optional[int] = None
   include_override: Optional[bool] = None
   is_chosen: bool = False
@@ -102,6 +107,7 @@ class Result:
     return Result(
         centre=data['centre'],
         file_id=data['file_id'],
+        description=data.get('description'),
         group_index=data['group_index'],
         include_override=data['include_override'],
         is_chosen=data['is_chosen'],
@@ -120,6 +126,7 @@ class Result:
   def to_dict(self) -> dict:
     return {
         'centre': self.centre,
+        'description': self.description,
         'file_id': self.file_id,
         'group_index': self.group_index,
         'include_override': self.include_override,
@@ -166,10 +173,10 @@ class Result:
           stroke_fill=config.font_outline_colour,
       )
 
-    # Add location
+    # Add texts
     text_top = config.crop_height + config.text_offset_y
-    if self.location:
-      _draw_text(config.text_offset_x, text_top, self.location)
+    if text := self.description or self.location:
+      _draw_text(config.text_offset_x, text_top, text)
     if self.taken:
       taken_text = self.get_time_taken_text(config)
       if taken_text:
@@ -179,13 +186,17 @@ class Result:
 
     return cropped
 
-  @cachetools.cached(CROP_CACHE, key=lambda self, _: f'{self.file_id}')
+  @cachetools.cached(CROP_CACHE, key=_result_cache_key)
   def get_cropped_bytes(self, config: Config) -> bytes:
     cropped = self.get_cropped(config)
     img_io = BytesIO()
     cropped.save(img_io, 'JPEG', quality=config.output_quality)
     img_io.seek(0)
     return img_io.getvalue()
+
+  def update_description(self, description: Optional[str]) -> None:
+    self.description = description or None
+    self.needs_update = True
 
 
 @cachetools.cached(IMAGE_CACHE)

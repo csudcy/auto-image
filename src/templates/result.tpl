@@ -12,6 +12,7 @@
     {% if results|length == 1 %}
       <input type="hidden" name="file_id" value="{{ results[0].file_id }}"/>
     {% endif %}
+    <input type="hidden" name="action" value="update_include_override"/>
     <button type="submit" name="include_override" value="false">
       Exclude
     </button>
@@ -55,6 +56,7 @@
               <td>
                 <form method="POST">
                   <input type="hidden" name="file_id" value="{{ result.file_id }}"/>
+                  <input type="hidden" name="action" value="update_include_override"/>
                   <button type="submit" name="include_override" value="false"
                     {% if result.include_override == False %}class="selected"{% endif %}>
                     Exclude
@@ -82,7 +84,17 @@
                 {% endif %}
               </td>
             </tr>
-
+            <tr>
+              <th>Description</th>
+              <td>
+                <form method="POST">
+                  <input type="hidden" name="file_id" value="{{ result.file_id }}"/>
+                  <input type="hidden" name="action" value="update_description"/>
+                  <input type="text" name="description" value="{{ result.description or '' }}"/>
+                  <button type="submit">Update</button>
+                </form>
+              </td>
+            </tr>
             <tr>
               <th>Location</th>
               <td>
@@ -105,7 +117,6 @@
               <th>Total Score</th>
               <td>{{ result.total | round(2) }}</td>
             </tr>
-
             <tr>
               <th>Ocr Coverage</th>
               <td>

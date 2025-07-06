@@ -17,8 +17,8 @@ from src import score_processor
 from src.config import Config
 
 # TODO (functionality):
-# - Allow address to be overridden (per-image or per-latlng)
-#   - Add a description (top of image?) - could just go instead of address
+# - Bug: Some cropped images are rotated?
+#   - http://localhost:5000/result/2018-10-21%2016.48.14.jpg
 # - Allow crop to be changed
 # - Allow all images to be updated en-masse (with filtering)
 #  - Include/exclude
@@ -338,9 +338,16 @@ def serve(
     result = result_set.results.get(file_id)
     if result:
       if flask.request.method == 'POST':
-        include_override = INCLUDE_OVERRIDE_VALUES[flask.request.form.get(
-            'include_override')]
-        result.update_include_override(include_override)
+        action = flask.request.form.get('action')
+        if action == 'update_include_override':
+          include_override = INCLUDE_OVERRIDE_VALUES[
+              flask.request.form['include_override']]
+          result.update_include_override(include_override)
+        elif action == 'update_description':
+          description = flask.request.form['description']
+          result.update_description(description)
+        else:
+          raise Exception(f'Unknown action: {action}')
         action_executor.submit(_process_action, 'save')
       return flask.render_template(
           'result.tpl',
@@ -358,12 +365,22 @@ def serve(
     ]
     if results:
       if flask.request.method == 'POST':
-        include_override = INCLUDE_OVERRIDE_VALUES[flask.request.form.get(
-            'include_override')]
-        file_id = flask.request.form.get('file_id')
-        for result in results:
-          if file_id is None or file_id == result.file_id:
+        action = flask.request.form.get('action')
+        if file_id := flask.request.form.get('file_id'):
+          results_to_update = [result_set.results[file_id]]
+        else:
+          results_to_update = results
+        if action == 'update_include_override':
+          include_override = INCLUDE_OVERRIDE_VALUES[flask.request.form.get(
+              'include_override')]
+          for result in results_to_update:
             result.update_include_override(include_override)
+        elif action == 'update_description':
+          description = flask.request.form['description']
+          for result in results_to_update:
+            result.update_description(description)
+        else:
+          raise Exception(f'Unknown action: {action}')
         action_executor.submit(_process_action, 'save')
       return flask.render_template(
           'result.tpl',
@@ -389,7 +406,7 @@ def serve(
       img_io = BytesIO()
       img_io.write(img_bytes)
       img_io.seek(0)
-      return flask.send_file(img_io, mimetype='image/jpeg', max_age=600)
+      return flask.send_file(img_io, mimetype='image/jpeg', max_age=0)
     else:
       return flask.abort(client.NOT_FOUND)
 
