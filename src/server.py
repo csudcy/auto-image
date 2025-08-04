@@ -123,7 +123,7 @@ class GridSettings(pydantic.BaseModel):
   page_size: int = 25
 
   sort_type: SortType = SortType.TAKEN
-  sort_reverse: bool = False
+  sort_reverse: bool = True
 
   def get_matcher(self) -> Callable[[result_manager.Result], bool]:
     # - Chosen

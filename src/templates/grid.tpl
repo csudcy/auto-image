@@ -4,6 +4,7 @@
 
 {% block extra_head %}
   <link rel="stylesheet" href="/static/grid.css">
+  <script type="text/javascript" src="/static/grid.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -195,8 +196,8 @@
             type="number"
             name="page_size"
             value="{{ settings.page_size }}"
-            min="10"
-            max="1000"
+            min="1"
+            max="100"
         />
 
         <span class="heading">Sort</span>
@@ -238,7 +239,7 @@
   </div>
 
   <div class="content-panel">
-    {% for result in page %}
+    {%- for result in page -%}
       <span class="grid {% if result.is_chosen %}chosen{% endif %} {% if result.include_override == False %}exclude{% endif %}">
         <a target="_blank"
           {% if result.group_index %}
@@ -252,6 +253,6 @@
           </div>
         </a>
       </span>
-    {% endfor %}
+    {%- endfor -%}
   </div>
 {% endblock %}
