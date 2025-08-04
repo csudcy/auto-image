@@ -1,4 +1,7 @@
 body {
+    display: flex;
+    flex-flow: column;
+    height: 100vh;
     margin: 0;
 }
 
@@ -23,8 +26,7 @@ header {
 }
 
 main {
-    padding-left: 1rem;
-    padding-right: 1rem;
+    flex: 1;
 }
 
 .image-thumbnail {

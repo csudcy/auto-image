@@ -1,8 +1,8 @@
-
 main {
-    height: 100%; /* Ensure body and html take full viewport height */
-    margin: 0; /* Remove default margins */
-    display: flex; /* Use flexbox for layout */
+    display: flex;
+    flex-flow: row;
+    margin: 0;
+    overflow: auto;
 }
 
 .nav-panel {
@@ -12,7 +12,7 @@ main {
     margin: 5px;
     overflow-y: auto; /* Add vertical scrollbar if content overflows */
     padding: 5px;
-    width: 12vw;
+    width: 13rem;
 
     .pagination {
         display: block;
