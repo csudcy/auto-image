@@ -251,6 +251,9 @@
           <div class="image-thumbnail" title="{{ result.file_id }}">
             <img src="/image/{{ result.file_id }}"/>
           </div>
+          {% if result.group_index %}
+            <span class="group-text">{{ result.group_index }}</span>
+          {% endif %}
         </a>
       </span>
     {%- endfor -%}

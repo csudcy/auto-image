@@ -69,3 +69,19 @@ main {
     padding: 10px;
     overflow-y: auto; /* Add vertical scrollbar if content overflows */
 }
+
+.grid {
+    position: relative;
+
+    .group-text {
+        background-color: darkviolet;
+        color: white;
+        font-size: 1.5em;
+        font-weight: bold;
+        opacity: 0.6;
+        margin: 2px;
+        padding: 0 2px;
+        position: absolute;
+        top: 0;
+    }
+}
