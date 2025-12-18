@@ -4,6 +4,7 @@
 
 {% block extra_head %}
   <link rel="stylesheet" href="/static/result.css">
+  <script type="text/javascript" src="/static/result.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -29,18 +30,23 @@
       <tr class="{% if result.is_chosen %}chosen{% endif %} {% if result.include_override == False %}exclude{% endif %}">
         <td>
           <span class="grid">
-            <a target="_blank" href="/image/{{ result.file_id }}">
-              <div class="image-thumbnail large" title="{{ result.file_id }}">
-                <img src="/image/{{ result.file_id }}"/>
-              </div>
-            </a>
+            <div class="image-thumbnail large centreable" title="{{ result.file_id }}">
+              <img src="/image/{{ result.file_id }}"
+                data-id="{{ result.file_id }}"
+                data-centre-x="{{ result.centre[0] }}"
+                data-centre-y="{{ result.centre[1] }}"
+              />
+            </div>
           </span>
         </td>
         <td>
           <span class="grid">
             <a target="_blank" href="/image/cropped/{{ result.file_id }}">
               <div class="image-thumbnail large" title="{{ result.file_id }}">
-                <img src="/image/cropped/{{ result.file_id }}"/>
+                <img src="/image/cropped/{{ result.file_id }}"
+                  class="centreable-cropped"
+                  data-id="{{ result.file_id }}"
+                />
               </div>
             </a>
           </span>

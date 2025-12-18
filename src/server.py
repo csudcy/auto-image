@@ -197,6 +197,14 @@ class ConfigLogger:
     }
 
 
+def send_cropped(result: result_manager.Result, config: Config) -> flask.Response:
+  img_bytes = result.get_cropped_bytes(config)
+  img_io = BytesIO()
+  img_io.write(img_bytes)
+  img_io.seek(0)
+  return flask.send_file(img_io, mimetype='image/jpeg', max_age=0)
+
+
 def serve(
     config: Config,
     result_set: result_manager.ResultSet,
@@ -355,6 +363,20 @@ def serve(
     else:
       return flask.abort(client.NOT_FOUND)
 
+  @app.route('/api/result/centre/<file_id>', methods=('POST', ))
+  def api_result_centre(file_id: str):
+    result = result_set.results.get(file_id)
+    if result:
+      # Update centre & save
+      result.centre = (flask.request.json['x'], flask.request.json['y'])
+      result.needs_update = True
+      result_set.save()
+
+      # Return image bytes
+      return send_cropped(result, config)
+    else:
+      return flask.abort(client.NOT_FOUND)
+
   @app.route('/group/<int:group_index>', methods=('GET', 'POST'))
   def group_handler(group_index: int):
     results = [
@@ -400,11 +422,7 @@ def serve(
   def image_cropped_handler(file_id: str):
     result = result_set.results.get(file_id)
     if result and result.path:
-      img_bytes = result.get_cropped_bytes(config)
-      img_io = BytesIO()
-      img_io.write(img_bytes)
-      img_io.seek(0)
-      return flask.send_file(img_io, mimetype='image/jpeg', max_age=0)
+      return send_cropped(result, config)
     else:
       return flask.abort(client.NOT_FOUND)
 
