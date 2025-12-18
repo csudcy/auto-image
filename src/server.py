@@ -17,8 +17,6 @@ from src import score_processor
 from src.config import Config
 
 # TODO (functionality):
-# - Bug: Some cropped images are rotated?
-#   - http://localhost:5000/result/2018-10-21%2016.48.14.jpg
 # - Allow crop to be changed
 # - Allow all images to be updated en-masse (with filtering)
 #  - Include/exclude

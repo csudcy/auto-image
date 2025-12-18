@@ -151,7 +151,6 @@ class Result:
     # Otherwise, this will need to be updated next time processing is done
 
   def get_cropped(self, config: Config) -> Image.Image:
-    # return _get_cropped(config, self)
     image_width, image_height = self.image.size
     if self.centre:
       centre = (self.centre[0] / image_width, self.centre[1] / image_height)
@@ -201,7 +200,9 @@ class Result:
 
 @cachetools.cached(IMAGE_CACHE)
 def load_image(path: pathlib.Path) -> Image.Image:
-  return Image.open(path)
+  image = Image.open(path)
+  ImageOps.exif_transpose(image, in_place=True)
+  return image
 
 
 class ResultSet:
