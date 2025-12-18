@@ -382,6 +382,7 @@ class Scorer:
       output_path = self.config.output_dir / file_id
       cropped = result.get_cropped(self.config)
       cropped.save(output_path, quality=self.config.output_quality)
+      result.needs_update = False
       if index % 20 == 0:
         self.config.log(f'  Copied {index}...')
 
@@ -394,7 +395,9 @@ class Scorer:
       output_path.unlink()
       cropped = result.get_cropped(self.config)
       cropped.save(output_path, quality=self.config.output_quality)
+      result.needs_update = False
       if index % 20 == 0:
         self.config.log(f'  Updated {index}...')
 
+    self.result_set.save()
     self.config.log('Updating done!')
